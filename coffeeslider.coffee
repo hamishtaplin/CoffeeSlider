@@ -4,7 +4,8 @@ modules = SEQ.utils.namespace('SEQ.modules')
 transition = SEQ.effects.Transition
 
 ###*    
-CoffeeSlider is a touch-enabled Coffeescript-based slider module. 
+CoffeeSlider is a touch-enabled Coffeescript-based slider module.  
+
 @class CoffeeSlider 
 @author Hamish Taplin, Sequence        
 ###  
