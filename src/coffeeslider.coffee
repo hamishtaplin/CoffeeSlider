@@ -4,13 +4,8 @@
 
 "use strict" 
 
-# namespace
-modules = SEQ.utils.namespace('SEQ.modules')
-transition = SEQ.effects.Transition
-
-
 # the main Class
-class modules.CoffeeSlider      
+class Slider      
   # Constructor. Creates a CoffeeSlider instance.
 
   constructor: (@options) ->
@@ -540,7 +535,7 @@ class modules.CoffeeSlider
     selector.slice(1, selector.length)
 
     
-class modules.Pagination
+class Pagination
   
   paginationCurrent:{}
   paginationTotal:{}
