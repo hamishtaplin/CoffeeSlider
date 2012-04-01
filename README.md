@@ -2,6 +2,16 @@ CoffeeSlider
 ============
 Coffeeslider is a touch-enabled slider module written in Coffeescript.
 
+Features
+--------
+
+- Rigged for touch devices.
+- Fully compatible with responsive CSS techniques.
+- Infinite Scrolling.
+- Horizontal, vertical and fade transitions.
+- Uses 'Transition' CSS3 transition framework for cutting-edge, hardware-accelerated animations on supported browser/devices.
+- Callback API.
+
 Dependencies
 ------------
 
