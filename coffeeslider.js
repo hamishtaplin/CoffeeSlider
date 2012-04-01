@@ -1,6 +1,6 @@
 (function() {
   "use strict";
-  var Pagination, Slider, effects, getProp, transitionEndNames, _base,
+  var CoffeeSlider, effects, getProp, modules, transition, transitionEndNames, _base,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   if (window.SEQ == null) window.SEQ = {};
@@ -283,9 +283,13 @@
 
   "use strict";
 
-  Slider = (function() {
+  modules = SEQ.utils.namespace('SEQ.modules');
 
-    function Slider(options) {
+  transition = SEQ.effects.Transition;
+
+  SEQ.modules.CoffeeSlider = CoffeeSlider = (function() {
+
+    function CoffeeSlider(options) {
       this.options = options;
       this.find = __bind(this.find, this);
       this.onTransitionComplete = __bind(this.onTransitionComplete, this);
@@ -298,7 +302,9 @@
       this.onTouchStart = __bind(this.onTouchStart, this);
       this.onSlideshowTick = __bind(this.onSlideshowTick, this);
       this.initSlideshow = __bind(this.initSlideshow, this);
+      this.onWindowResize = __bind(this.onWindowResize, this);
       this.bindUIEvents = __bind(this.bindUIEvents, this);
+      this.applySizes = __bind(this.applySizes, this);
       this.applyStyles = __bind(this.applyStyles, this);
       this.checkImagesLoaded = __bind(this.checkImagesLoaded, this);
       this.preload = __bind(this.preload, this);
@@ -353,7 +359,7 @@
       this.init();
     }
 
-    Slider.prototype.init = function() {
+    CoffeeSlider.prototype.init = function() {
       var _this = this;
       this.container = this.options.container;
       this.container.addClass("coffee-slider").css({
@@ -362,19 +368,21 @@
       this.applySettings();
       this.bindToDOM();
       this.initUI();
-      return this.initSlides(function() {
+      this.initSlides(function() {
         _this.applyStyles();
+        _this.applySizes();
         _this.bindUIEvents();
         _this.settings.callbacks.onStart();
         return _this.goTo(0, true);
       });
+      return $(window).resize(this.onWindowResize);
     };
 
-    Slider.prototype.applySettings = function() {
+    CoffeeSlider.prototype.applySettings = function() {
       return $.extend(true, this.settings, this.options);
     };
 
-    Slider.prototype.bindToDOM = function() {
+    CoffeeSlider.prototype.bindToDOM = function() {
       this.slides = this.find("slide");
       this.numSlides = this.slides.length;
       this.slides.addClass("slide");
@@ -388,18 +396,18 @@
       }
     };
 
-    Slider.prototype.initSlides = function(callback) {
+    CoffeeSlider.prototype.initSlides = function(callback) {
       if (this.settings.loop === "infinite" && this.settings.transitionType !== "fade") {
         this.appendClonedSlides();
       }
       if (this.settings.preload) {
         return this.preload(callback);
       } else {
-        return callback();
+        if (callback != null) return callback();
       }
     };
 
-    Slider.prototype.preload = function(callback) {
+    CoffeeSlider.prototype.preload = function(callback) {
       this.outer.css({
         opacity: 0
       });
@@ -408,7 +416,7 @@
       return this.checkImagesLoaded(callback);
     };
 
-    Slider.prototype.checkImagesLoaded = function(callback) {
+    CoffeeSlider.prototype.checkImagesLoaded = function(callback) {
       var img, imgsLoaded, _i, _len, _ref,
         _this = this;
       imgsLoaded = 0;
@@ -418,7 +426,7 @@
         if (img.complete) imgsLoaded++;
       }
       if (imgsLoaded === this.numImages) {
-        callback();
+        if (callback != null) callback();
         return transition.To({
           target: this.outer,
           duration: 300,
@@ -433,7 +441,7 @@
       }
     };
 
-    Slider.prototype.appendClonedSlides = function() {
+    CoffeeSlider.prototype.appendClonedSlides = function() {
       var float;
       float = (this.settings.transitionDirection === "horizontal" ? "left" : "none");
       this.inner.append(this.slides.eq(0).clone().addClass('clone').css({
@@ -446,7 +454,7 @@
       return this.numSlides = this.slides.length;
     };
 
-    Slider.prototype.applyStyles = function(callback) {
+    CoffeeSlider.prototype.applyStyles = function(callback) {
       this.inner.css({
         position: "relative",
         overflow: "hidden"
@@ -454,54 +462,62 @@
       this.outer.css({
         overflow: "hidden"
       });
-      this.slideWidth = this.slides.eq(0).outerWidth(true);
-      this.slideHeight = this.slides.eq(0).outerHeight(true);
-      this.totalWidth = this.slideWidth * this.numSlides;
-      this.totalHeight = this.slideHeight * this.numSlides;
       if (this.settings.transitionType === "slide" || this.settings.transitionType === "slideFade") {
         if (this.settings.transitionDirection === "horizontal") {
-          this.slides.css({
+          return this.slides.css({
             float: "left",
             overflow: "hidden"
           });
+        }
+      } else if (this.settings.transitionType === "fade") {
+        return this.slides.css({
+          position: "absolute",
+          left: "0",
+          opacity: "0"
+        });
+      }
+    };
+
+    CoffeeSlider.prototype.applySizes = function() {
+      var outerHeight, outerWidth;
+      if (this.isMoving) return;
+      this.slideWidth = this.slides.eq(0).outerWidth(true);
+      this.slideHeight = this.slides.eq(0).innerHeight(true);
+      this.totalWidth = this.slideWidth * this.numSlides;
+      this.totalHeight = this.slideHeight * this.numSlides;
+      outerWidth = this.outer.width();
+      outerHeight = this.outer.height();
+      this.slides.css({
+        width: outerWidth
+      });
+      if (this.settings.transitionType === "slide" || this.settings.transitionType === "slideFade") {
+        if (this.settings.transitionDirection === "horizontal") {
           this.slideWidth = this.slides.eq(0).outerWidth(true);
           this.totalWidth = this.slideWidth * this.numSlides;
           this.inner.css({
             width: this.totalWidth,
-            height: this.totalHeight
+            left: 0 - (outerWidth * (this.currentIndex + 1))
           });
           return this.outer.css({
-            width: this.slideWidth,
             height: this.slideHeight
           });
         } else if (this.settings.transitionDirection === "vertical") {
           this.inner.css({
             height: this.totalHeight,
-            width: this.slideWidth
+            top: 0 - (this.slideHeight * (this.currentIndex + 1))
           });
           return this.outer.css({
-            height: this.slideHeight,
-            width: this.slideWidth
+            height: this.slideHeight
           });
         }
       } else if (this.settings.transitionType === "fade") {
-        this.slides.css({
-          position: "absolute",
-          left: "0",
-          opacity: "0"
-        });
-        this.inner.css({
-          width: this.slideWidth,
+        return this.inner.css({
           height: this.slideHeight
-        });
-        return this.outer.css({
-          height: this.slideHeight,
-          width: this.slideWidth
         });
       }
     };
 
-    Slider.prototype.initUI = function() {
+    CoffeeSlider.prototype.initUI = function() {
       var i, slide, _len, _ref;
       this.uiParent = this.getContainer("uiParent", this.container);
       if (this.settings.hasPrevNext) {
@@ -525,14 +541,12 @@
       }
     };
 
-    Slider.private;
-
-    Slider.prototype.removeUI = function() {
+    CoffeeSlider.prototype.removeUI = function() {
       this.nextBtn.remove();
       return this.prevBtn.remove();
     };
 
-    Slider.prototype.bindUIEvents = function() {
+    CoffeeSlider.prototype.bindUIEvents = function() {
       var _this = this;
       if (this.settings.hasPrevNext) {
         this.nextBtn.bind("click", function(e) {
@@ -555,16 +569,20 @@
       }
     };
 
-    Slider.prototype.initSlideshow = function() {
+    CoffeeSlider.prototype.onWindowResize = function() {
+      return this.applySizes();
+    };
+
+    CoffeeSlider.prototype.initSlideshow = function() {
       clearTimeout(this.timer);
       return this.timer = setTimeout(this.onSlideshowTick, this.settings.transitionDelay);
     };
 
-    Slider.prototype.onSlideshowTick = function() {
+    CoffeeSlider.prototype.onSlideshowTick = function() {
       return this.next();
     };
 
-    Slider.prototype.onTouchStart = function(e) {
+    CoffeeSlider.prototype.onTouchStart = function(e) {
       var endX, endY;
       this.innerLeft = parseInt(this.inner.css("left"));
       this.innerTop = parseInt(this.inner.css("top"));
@@ -578,7 +596,7 @@
       if (this.settings.slideshow) return clearTimeout(this.timer);
     };
 
-    Slider.prototype.onTouchEndOrCancel = function() {
+    CoffeeSlider.prototype.onTouchEndOrCancel = function() {
       this.inner.unbind("touchend", this.onTouchEndOrCancel);
       this.inner.unbind("touchcancel", this.onTouchEndOrCancel);
       this.inner.unbind("touchmove", this.onTouchMove);
@@ -617,7 +635,7 @@
       }
     };
 
-    Slider.prototype.onTouchMove = function(e) {
+    CoffeeSlider.prototype.onTouchMove = function(e) {
       var dragPosX, dragPosY;
       this.endX = e.originalEvent.touches[0].pageX;
       this.endY = e.originalEvent.touches[0].pageY;
@@ -661,7 +679,7 @@
       }
     };
 
-    Slider.prototype.goTo = function(index, skipTransition) {
+    CoffeeSlider.prototype.goTo = function(index, skipTransition) {
       var ACTIVE;
       this.settings.callbacks.onTransition();
       if (!skipTransition) this.isMoving = true;
@@ -689,7 +707,7 @@
       if (this.settings.slideshow) return this.initSlideshow();
     };
 
-    Slider.prototype.slideTo = function(index, skipTransition) {
+    CoffeeSlider.prototype.slideTo = function(index, skipTransition) {
       var offset, position;
       this.currentIndex = index;
       offset = (this.settings.loop === "infinite" ? 1 : 0);
@@ -710,7 +728,7 @@
       });
     };
 
-    Slider.prototype.fadeTo = function(index, skipTransition) {
+    CoffeeSlider.prototype.fadeTo = function(index, skipTransition) {
       if (this.slides[this.currentIndex] != null) {
         transition.To({
           target: this.slides[this.currentIndex],
@@ -731,12 +749,12 @@
       });
     };
 
-    Slider.prototype.slideFadeTo = function(index, skipTransition) {
+    CoffeeSlider.prototype.slideFadeTo = function(index, skipTransition) {
       this.fadeTo(index, skipTransition);
       return this.slideTo(index, skipTransition);
     };
 
-    Slider.prototype.prev = function() {
+    CoffeeSlider.prototype.prev = function() {
       var prevIndex;
       prevIndex = this.currentIndex - 1;
       if ((this.settings.transitionType === "fade" || this.settings.loop === "return") && prevIndex < 0) {
@@ -745,7 +763,7 @@
       return this.goTo(prevIndex, false);
     };
 
-    Slider.prototype.next = function() {
+    CoffeeSlider.prototype.next = function() {
       var nextIndex;
       nextIndex = this.currentIndex + 1;
       if (nextIndex > (this.numSlides - 1)) {
@@ -758,7 +776,7 @@
       return this.goTo(nextIndex, false);
     };
 
-    Slider.prototype.onTransitionComplete = function() {
+    CoffeeSlider.prototype.onTransitionComplete = function() {
       this.isMoving = false;
       if (this.settings.loop === "infinite" && this.settings.transitionType !== "fade") {
         if (this.currentIndex === -1) {
@@ -773,11 +791,11 @@
       }
     };
 
-    Slider.prototype.find = function(selectorName) {
+    CoffeeSlider.prototype.find = function(selectorName) {
       return this.container.find(this.settings.selectors[selectorName]);
     };
 
-    Slider.prototype.getContainer = function(name, _default) {
+    CoffeeSlider.prototype.getContainer = function(name, _default) {
       if (this.settings.selectors[name] === "") {
         return _default;
       } else {
@@ -785,17 +803,17 @@
       }
     };
 
-    Slider.prototype.getSelector = function(name) {
+    CoffeeSlider.prototype.getSelector = function(name) {
       var selector;
       selector = this.settings.selectors[name];
       return selector.slice(1, selector.length);
     };
 
-    return Slider;
+    return CoffeeSlider;
 
   })();
 
-  Pagination = (function() {
+  modules.Pagination = (function() {
 
     Pagination.prototype.paginationCurrent = {};
 

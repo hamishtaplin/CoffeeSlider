@@ -1,11 +1,15 @@
 #    
 # Coffeeslider
-# ------------
+# ============
 
 "use strict" 
 
+# namespace
+modules = SEQ.utils.namespace('SEQ.modules')
+transition = SEQ.effects.Transition
+
 # the main Class
-class Slider      
+SEQ.modules.CoffeeSlider = class CoffeeSlider      
   # Constructor. Creates a CoffeeSlider instance.
 
   constructor: (@options) ->
@@ -115,12 +119,13 @@ class Slider
     @initUI()
     # init slides and pass in callback for image preloading
     @initSlides =>      
-      @applyStyles()            
+      @applyStyles()  
+      @applySizes()          
       @bindUIEvents()
       @settings.callbacks.onStart()
       @goTo(0, true)
-   
-
+    $(window).resize @onWindowResize
+  
   # Merges user-defined options with defaults.
   applySettings:() ->
     
@@ -152,7 +157,7 @@ class Slider
     if @settings.preload
       @preload(callback)
     else
-      callback()
+      callback() if callback?
 
   # Preloads the images. 
   preload: (callback) =>
@@ -162,7 +167,6 @@ class Slider
     @numImages = @images.length
     @checkImagesLoaded(callback)
   
-
   # Loops through each image and checks if loaded. If ready, calls the callback to continue.
   checkImagesLoaded: (callback) =>
     imgsLoaded = 0
@@ -172,7 +176,7 @@ class Slider
         imgsLoaded++ 
         
     if imgsLoaded is @numImages
-      callback()
+      callback() if callback?
       transition.To
         target: @outer
         duration: 300
@@ -207,54 +211,68 @@ class Slider
   
   # Applies some basic CSS.
   applyStyles: (callback) =>
+    # set some initial styles
     @inner.css 
       position: "relative"
       overflow: "hidden"
     @outer.css
       overflow: "hidden"
-    # get width of single slide      
-    @slideWidth = @slides.eq(0).outerWidth(true)
-    @slideHeight = @slides.eq(0).outerHeight(true)
-    @totalWidth = @slideWidth * @numSlides
-    @totalHeight = @slideHeight * @numSlides
-       
+
+    # if using 'slide' option
     if @settings.transitionType is "slide" or @settings.transitionType is "slideFade"
       if @settings.transitionDirection is "horizontal"
-        # if using 'slide' option
         @slides.css
           float: "left"
-          overflow: "hidden"
-        # recalculate width
-        @slideWidth = @slides.eq(0).outerWidth(true)
-        @totalWidth = @slideWidth * @numSlides  
-        # set width of inner to accomodate slides
-        @inner.css
-          width: @totalWidth
-          height: @totalHeight
-        # set width of outer wrapper
-        @outer.css
-          width: @slideWidth
-          height: @slideHeight
-      else if @settings.transitionDirection is "vertical"
-        # set width of inner to accomodate slides
-        @inner.css
-          height: @totalHeight
-          width: @slideWidth
-        @outer.css
-          height: @slideHeight
-          width: @slideWidth
+          overflow: "hidden"                    
     else if @settings.transitionType is "fade"
       @slides.css
         position: "absolute"
         left: "0"
         opacity: "0"
-      @inner.css
-        width: @slideWidth 
-        height: @slideHeight
-      @outer.css
-        height: @slideHeight
-        width: @slideWidth
+        
+  # calculates and applies sizes
+  applySizes: =>
+    #  don't do this in the middle of a transition
+    if @isMoving then return
+    
+    # get width of single slide      
+    @slideWidth = @slides.eq(0).outerWidth(true)
+    @slideHeight = @slides.eq(0).innerHeight(true)
+    @totalWidth = @slideWidth * @numSlides
+    @totalHeight = @slideHeight * @numSlides
+    outerWidth = @outer.width()
+    outerHeight = @outer.height()
 
+    # set slide widths to that of main container        
+    @slides.css
+      width: outerWidth
+    
+    # if using 'slide' option
+    if @settings.transitionType is "slide" or @settings.transitionType is "slideFade"
+      if @settings.transitionDirection is "horizontal"
+        # recalculate width
+        @slideWidth = @slides.eq(0).outerWidth(true)
+        @totalWidth = @slideWidth * @numSlides  
+        # set width of inner to accomodate slides and adjust left position
+        @inner.css
+          width: @totalWidth
+          left: 0-(outerWidth * (@currentIndex + 1))  
+        # set width of outer wrapper
+        @outer.css
+          height: @slideHeight
+      else if @settings.transitionDirection is "vertical"
+        # set width of inner to accomodate slides
+        @inner.css
+          height: @totalHeight
+          top: 0-(@slideHeight * (@currentIndex + 1))  
+        @outer.css
+          height: @slideHeight
+    
+    # if "fade"
+    else if @settings.transitionType is "fade"
+      @inner.css
+        height: @slideHeight
+        
   # Initialises UI components.
   initUI: ->
     @uiParent = @getContainer "uiParent", @container
@@ -292,7 +310,6 @@ class Slider
       ) 
       
   # Removes UI components.
-  @private
   removeUI: ->
     @nextBtn.remove()
     @prevBtn.remove()
@@ -316,7 +333,10 @@ class Slider
 
     #touch events
     @inner.bind "touchstart", @onTouchStart if @settings.touchStyle isnt "none"
-
+  
+  onWindowResize: =>
+    @applySizes()
+  
   # Initialises the slideshow, if needed.
   initSlideshow: =>    
     clearTimeout(@timer)
@@ -341,7 +361,6 @@ class Slider
     if @settings.slideshow
       clearTimeout(@timer)
   
-
   # Called when a touch event finishes.
   onTouchEndOrCancel: ( ) =>
     @inner.unbind("touchend", @onTouchEndOrCancel)
@@ -458,7 +477,7 @@ class Slider
       position = left: 0 - (index + offset) * @slideWidth
     else if @settings.transitionDirection is "vertical"
       position = top: 0 - (index + offset) * @slideHeight
- 
+
     transition.To
       target: @inner
       props: position    
@@ -535,7 +554,7 @@ class Slider
     selector.slice(1, selector.length)
 
     
-class Pagination
+class modules.Pagination
   
   paginationCurrent:{}
   paginationTotal:{}
