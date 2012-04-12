@@ -4,6 +4,13 @@
 *
 ********************************************/
 
-body#home {
-
+#carousel {
+  blockquote {
+    display: block;
+    padding: 40px;
+    font-size: 48px;
+    line-height: ($baseline*5);
+    color: $default-colour;
+    margin: $baseline 0;
+  }
 }

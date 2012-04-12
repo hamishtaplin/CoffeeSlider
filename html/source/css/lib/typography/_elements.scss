@@ -1,6 +1,9 @@
-body,h1,h2,h3,h4,h5,h6,p,ul,ol,dl,input,textarea {
+body,a,h1,h2,h3,h4,h5,h6,p,ul,ol,dl,input,textarea {
   line-height: $baseline * 2;
   color: $default-colour;
+  font-family: $sans;
+  font-size: $font-size;
+  line-height: 18px;
 }
 
 p {
@@ -51,19 +54,7 @@ a {
   @include link-colours($links-normal, $links-hover, $links-active, $links-visited, $links-focus)
   }
 
-blockquote {
-  display: block;
-  font-weight: bold;
-  border-left: 4px solid #eeeeee;
-  padding: ($baseline*2) $baseline;
-  font-weight: bold;
-  font-size: 30px;
-  font-family: serif;
-  font-style: italic;
-  color: $default-colour;
-  line-height: 30px;
-  margin: $baseline 0;
-}
+
 
 pre, code {
   margin: 10px 0;
@@ -74,7 +65,6 @@ pre, code, tt {
   font: $mono;
   line-height: 1.5;
   padding: 0 3px 2px;
-  background: #FFFFEE;
 }
 
 q {
@@ -85,13 +75,10 @@ q {
 
 cite {
   display: block;
-  font-weight: bold;
 }
 
 figcaption {
   display: block;
-  font-weight: bold;
-  font-style: italic;
 }
 
 small {

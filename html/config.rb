@@ -1,3 +1,6 @@
+# pretty URLS
+activate :directory_indexes
+
 # ----------------------------
 # Set directories (optional)
 set :css_dir, "css"

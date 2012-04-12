@@ -1,13 +1,8 @@
-%div#container
-  .wrapper
-    %section#cta-list
-      = partial('includes/modules/generic_cta')
-      = partial('includes/modules/generic_cta')
-      = partial('includes/modules/generic_cta')
-    
-    %section#welcome
-      %p
-        = lorem.paragraph
-        this is a
-        %a{:href => '#'}
-          link
+---
+  page_title: CoffeeSlider
+  body_id: home
+---
+
+#content
+  = partial("includes/modules/carousel")
+  
