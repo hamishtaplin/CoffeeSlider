@@ -128,7 +128,6 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
   
   # Merges user-defined options with defaults.
   applySettings:() ->
-    
     # merge settings defaults
     $.extend true, @settings, @options
   
@@ -282,11 +281,11 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
       @prevBtn = $("<div />")
         .addClass("#{@getSelector("prev")}")
         .addClass("#{@getSelector("btn")}")
-        .html("next")
+        .html("prev")
       @nextBtn = $("<div />")
         .addClass("#{@getSelector("next")}") 
         .addClass("#{@getSelector("btn")}")        
-        .html("prev") 
+        .html("next") 
       @uiParent.append(@prevBtn)
       @uiParent.append(@nextBtn)
     
