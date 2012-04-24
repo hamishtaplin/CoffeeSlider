@@ -19,7 +19,7 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
       # type of animation - "slide", "fade" or "slideFade"
       transitionType: "slide" 
       # slideshow?
-      slideshow: true 
+      slideshow: false
       # the direction of transitions
       transitionDirection: "horizontal" 
       # duration between transitions in slideshow mode
@@ -31,7 +31,11 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
       # has prev/next navigation
       hasPrevNext: true 
       # has pagination (eg. 01/05)
-      hasPagination: false
+      hasPagination: false  
+      # increase for multiple 'slides' in a viewport
+      step: 1
+      # respond to browser resizing
+      responsive: true
       # which style of touch interaction to use, "gesture", "inverseGesture", "drag" or "none"
       touchStyle: "drag"                    
       # "infinite" - slides loop infinitely
@@ -40,6 +44,9 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
       loop: "infinite"                      
       # preloads the images
       preload: true                   
+      # another slider (or something that implements the same interface) to link navigation with
+      link: null
+      
       # these are the selectors used
       selectors:
         # Coffeeslider uses this selector to define a slide. For example, if your 'slides' are a list, you would enter 'li' here.   
@@ -93,10 +100,10 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
     @slideWidth = 0
     # internal states
     @currentIndex = 1000
+    # number of unique slides
+    @numUniqueSlides = 0
     # number of slides
     @numSlides = 0
-    # the current slide
-    @currentSlide = {}
     # is currently moving
     @isMoving = false;
     # pagination
@@ -124,7 +131,9 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
       @bindUIEvents()
       @settings.callbacks.onStart()
       @goTo(0, true)
-    $(window).resize @onWindowResize
+    
+    if @settings.responsive
+      $(window).resize @onWindowResize
   
   # Merges user-defined options with defaults.
   applySettings:() ->
@@ -135,9 +144,12 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
   bindToDOM: ->   
     # bind DOM references
     @slides = @find("slide")
+    #store number of unique slides for later
     @numSlides = @slides.length
-    @slides.addClass("slide")
-
+    
+    for slide, i in @slides
+      $(slide).addClass("slide slide-#{i}")
+    
     # if inner/outer don't exist, create them
     if (@inner = @find("inner")).length is 0
       @slides.wrapAll($("<div />").addClass(@getSelector("inner")))
@@ -189,22 +201,24 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
   # Appends cloned slides to either side for purposes of creating illusion of infinite scrolling.
   appendClonedSlides: ->     
     float = (if @settings.transitionDirection is "horizontal" then "left" else "none")
-    
-    # append 1st slide to end
-    @inner.append @slides 
-      .eq(0)
-      .clone()
-      .addClass('clone')
-      .css
-        float: float
-    # append last slide to start
-    @inner.prepend @slides
-      .eq(@numSlides-1)
-      .clone()
-      .addClass('clone')
-      .css
-        float: float 
-        
+    i = 0
+    while i < @settings.step
+      i++
+      # append 1st slide to end
+      @inner.append @slides
+        .eq(0 + (i-1))
+        .clone()
+        .addClass('clone')
+        .css
+          float: float
+      # append last slide to start
+      @inner.prepend @slides
+        .eq(@numSlides-i)
+        .clone()
+        .addClass('clone')
+        .css
+          float: float
+    @numUniqueSlides = @numSlides
     @slides = @find("slide")
     @numSlides = @slides.length
   
@@ -233,15 +247,17 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
   applySizes: =>
     #  don't do this in the middle of a transition
     if @isMoving then return
-    
+  
     # get width of single slide      
     @slideWidth = @slides.eq(0).outerWidth(true)
     @slideHeight = @slides.eq(0).innerHeight(true)
-    @totalWidth = @slideWidth * @numSlides
+    @totalWidth = (@slideWidth * @numSlides) * @settings.step
     @totalHeight = @slideHeight * @numSlides
     outerWidth = @outer.width()
     outerHeight = @outer.height()
-
+    @container.css
+      width: outerWidth * @settings.step
+    
     # set slide widths to that of main container        
     @slides.css
       width: outerWidth
@@ -328,7 +344,7 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
     if @settings.hasDotNav
       @dotNav.bind "click", (e) =>
         e.preventDefault()
-        @goTo $(e.target).index(), false
+        @goTo $(e.target).index()
 
     #touch events
     @inner.bind "touchstart", @onTouchStart if @settings.touchStyle isnt "none"
@@ -379,6 +395,7 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
           @prev()
       else
         @goTo @currentIndex
+        
     else if @settings.transitionDirection is "vertical"    
       if @distanceMovedY > 50
         if @settings.transitionType is "fade" or @settings.touchStyle is "inverseGesture"
@@ -433,10 +450,11 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
 
   # Goes to a specific slide (as indicated).
   goTo: (index, skipTransition) =>
-    # dont proceed if still moving or attempt to goto the current frame
-    # return false if @isMoving or @currentIndex is index  
+    
+    # dont proceed if still moving
+    return false if @isMoving 
     @settings.callbacks.onTransition()
-
+    
     if !skipTransition
       @isMoving = true    
      
@@ -449,9 +467,8 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
     
     # update dotnav
     if @settings.hasDotNav
-      ACTIVE = "active"
-      @dotNav.find(".#{ACTIVE}").removeClass(ACTIVE)
-      @dotNav.find("li").eq(index).addClass(ACTIVE)
+      @dotNav.find(".active").removeClass("active")
+      @dotNav.find("li").eq(index).addClass("active")
     
     # update pagination 
     if @settings.hasPagination    
@@ -464,18 +481,18 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
         
     if @settings.slideshow
       @initSlideshow()
-    
+        
   # Uses the 'slide' animation to move to a slide.
   slideTo: (index, skipTransition) =>
     # record the current index
     @currentIndex = index
     # offset to compensate for extra slide if in infinite mode
-    offset = (if @settings.loop is "infinite" then 1 else 0)       
+    offset = (if @settings.loop is "infinite" then @settings.step else 0)       
     
     if @settings.transitionDirection is "horizontal"
       position = left: 0 - (index + offset) * @slideWidth
     else if @settings.transitionDirection is "vertical"
-      position = top: 0 - (index + offset) * @slideHeight
+      position = top: 0 - (index + offset) * @slideHeight * @settings.step
 
     transition.To
       target: @inner
@@ -531,8 +548,8 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
     @isMoving = false
     if @settings.loop is "infinite" and @settings.transitionType isnt "fade"
       if @currentIndex is -1
-        @goTo @numSlides - 3, true
-      else if @currentIndex is @numSlides - 2
+        @goTo @numSlides - (3 + (if @settings.step > 1 then @settings.step + 1 else 0)), true
+      else if @currentIndex is (@numSlides - 2) - (if @settings.step > 1 then @settings.step + 1 else 0)
         @goTo 0, true
       else
         @settings.callbacks.onTransitionComplete()
@@ -552,9 +569,7 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
     selector = @settings.selectors[name]
     selector.slice(1, selector.length)
 
-    
 class modules.Pagination
-  
   paginationCurrent:{}
   paginationTotal:{}
     
@@ -580,3 +595,35 @@ class modules.Pagination
       props :
         top : "-#{@paginationCurrent.find('.number').outerHeight() * (index-1)}px"
       duration : 500
+      
+SEQ.modules.ThumbSlider = class ThumbSlider extends SEQ.modules.CoffeeSlider
+  constructor:(@options) ->
+    super(@options)
+    @settings.link.link = @
+    
+  goTo: (index, skipTransition) =>
+    super(index, skipTransition)
+    
+  bindUIEvents: =>
+    super()
+    for slide in @slides
+      $(slide).on("click", @onSlideClick)
+      
+  onSlideClick: (e) =>
+    if @clicked?
+      @clicked.removeClass("active")
+    @clicked = $(e.currentTarget)
+    @clicked.addClass("active")
+    
+    slideIndex = @clicked.index() - @settings.step
+    limit = (@numUniqueSlides - 1)
+    
+    if slideIndex > limit
+      slideIndex = Math.abs(limit-slideIndex) - 1
+      
+    if @settings.link?
+      @settings.link.goTo(slideIndex, false)
+
+    
+        
+  
