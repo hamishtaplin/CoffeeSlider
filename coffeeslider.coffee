@@ -9,10 +9,11 @@ modules = SEQ.utils.namespace('SEQ.modules')
 transition = SEQ.effects.Transition
 
 # the main Class
-SEQ.modules.CoffeeSlider = class CoffeeSlider      
+class modules.CoffeeSlider extends modules.BaseModule    
   # Constructor. Creates a CoffeeSlider instance.
 
   constructor: (@options) ->
+    
     # Intial settings
     # --------------
     @settings =
@@ -25,14 +26,12 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
       # duration between transitions in slideshow mode
       transitionDelay: 2000 
       # duration of transition
-      transitionSpeed: 1000 
-      # whether to use dot navigation
-      hasDotNav: true
+      transitionSpeed: 1000
       # has prev/next navigation
-      hasPrevNext: true 
-      # has pagination (eg. 01/05)
-      hasPagination: false  
-      # increase for multiple 'slides' in a viewport
+      hasPrevNext: true
+      # has dotnav
+      hasDotNav: true
+      # increase for multiple 'slides' in a viewport    
       step: 1
       # respond to browser resizing
       responsive: true
@@ -41,11 +40,9 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
       # "infinite" - slides loop infinitely
       # "return" - loops around to start/end
       # "none" - does nothing when it reaches the start/end
-      loop: "infinite"                      
+      loop: "infinite"
       # preloads the images
       preload: true                   
-      # another slider (or something that implements the same interface) to link navigation with
-      link: null
       
       # these are the selectors used
       selectors:
@@ -63,16 +60,6 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
         btn:      ".btn"
         # defaults to $carousel.
         uiParent: ""             
-        # Same as the uiParent but for the pagination indicators. Defaults to uiParent.
-        paginationContainer: ""
-        # The class to be used for 'dot' style navigation.
-        dotNav: ".dot-nav"
-        # The class for pagination indicators. (eg. 01/05)  
-        pagination: ".pagination"
-        # The class added to the current page indicator (eg. 01/05)    
-        paginationCurrent: ".currentPage"
-        # The class added to the page total.
-        paginationTotal: ".total"
         
       callbacks:
         # Called after the slider is initialised. 
@@ -83,7 +70,7 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
         onTransitionComplete: ->
     
     # Main container element - A jQuery object containing the slides.
-    @container = {}
+    @element = {}
     # outer container
     @outer = {}
     # inner container
@@ -99,24 +86,20 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
     # width of slide
     @slideWidth = 0
     # internal states
-    @currentIndex = 1000
+    @currentIndex = undefined
     # number of unique slides
     @numUniqueSlides = 0
     # number of slides
     @numSlides = 0
     # is currently moving
     @isMoving = false;
-    # pagination
-    @pagination = {}
-    # dot nav
-    @dotNav = {}
-  
-    @init()
-  
+    # navigation modules
+    
+    super(@options)
   # initialises the class
   init: () =>
-    @container = @options.container
-    @container
+    @element = @options.container
+    @element
       .addClass("coffee-slider")
       .css
         opacity: 1
@@ -159,7 +142,7 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
       @inner.wrap $("<div />").addClass(@getSelector("outer"))
       @outer = @find("outer")
   
-  # Binds internal properties to DOM elements.
+  # Initialises slides
   initSlides: (callback) =>
     # add cloned slides for infine scrolling unless fade  
     if @settings.loop is "infinite" and @settings.transitionType isnt "fade"
@@ -174,7 +157,7 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
   preload: (callback) =>
     @outer.css
       opacity: 0
-    @images = @container.find("img")
+    @images = @element.find("img")
     @numImages = @images.length
     @checkImagesLoaded(callback)
   
@@ -255,7 +238,7 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
     @totalHeight = @slideHeight * @numSlides
     outerWidth = @outer.width()
     outerHeight = @outer.height()
-    @container.css
+    @element.css
       width: outerWidth * @settings.step
     
     # set slide widths to that of main container        
@@ -290,7 +273,7 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
         
   # Initialises UI components.
   initUI: ->
-    @uiParent = @getContainer "uiParent", @container
+    @uiParent = @getContainer "uiParent", @element
     
     # create next/prev buttons
     if @settings.hasPrevNext
@@ -304,26 +287,13 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
         .html("next") 
       @uiParent.append(@prevBtn)
       @uiParent.append(@nextBtn)
-    
-    # create dot navigation
-    if @settings.hasDotNav
-      @dotNav = $("<nav />").addClass(@getSelector("dotNav"))
-      @uiParent.append(@dotNav)
-      @dotNav.append($("<ol />"))
-      # loop through slides
-      for slide, i in @slides
-        @dotNav.find("ol").append("<li>#{i}</li>")
-    
-    #  create pagination
-    if @settings.hasPagination   
-      @pagination = new modules.Pagination(
-        @getContainer("paginationContainer", @uiParent), 
-        @getSelector("pagination"), 
-        @getSelector("paginationCurrent"),
-        @getSelector("paginationTotal"),
-        @numSlides
-      ) 
       
+    if @settings.hasDotNav
+      dotNav = new modules.DotNav
+        slides: @slides
+        parent: @uiParent
+      @registerNavModule(dotNav)
+          
   # Removes UI components.
   removeUI: ->
     @nextBtn.remove()
@@ -340,12 +310,6 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
         e.preventDefault()
         @prev()
     
-    # # pagination click events 
-    if @settings.hasDotNav
-      @dotNav.bind "click", (e) =>
-        e.preventDefault()
-        @goTo $(e.target).index()
-
     #touch events
     @inner.bind "touchstart", @onTouchStart if @settings.touchStyle isnt "none"
   
@@ -451,12 +415,10 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
   # Goes to a specific slide (as indicated).
   goTo: (index, skipTransition) =>
     
-    # dont proceed if still moving
-    return false if @isMoving 
     @settings.callbacks.onTransition()
     
-    if !skipTransition
-      @isMoving = true    
+    # if !skipTransition
+    #  @isMoving = true    
      
     if @settings.transitionType is "slide"
       @slideTo(index, skipTransition)
@@ -464,24 +426,12 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
       @fadeTo(index, skipTransition)
     else if @settings.transitionType is "slideFade"
       @slideFadeTo(index, skipTransition)
-    
-    # update dotnav
-    if @settings.hasDotNav
-      @dotNav.find(".active").removeClass("active")
-      @dotNav.find("li").eq(index).addClass("active")
-    
-    # update pagination 
-    if @settings.hasPagination    
-      if @currentIndex < 0
-        @pagination.setPage @numSlides - 2 
-      else if @currentIndex > (@numSlides - 3)
-        @pagination.setPage 1
-      else
-        @pagination.setPage @currentIndex + 1
-        
+          
     if @settings.slideshow
       @initSlideshow()
-        
+      
+    super(index, skipTransition)
+              
   # Uses the 'slide' animation to move to a slide.
   slideTo: (index, skipTransition) =>
     # record the current index
@@ -527,6 +477,8 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
 
   # Goes to the previous page.  
   prev: ->
+    # dont proceed if still moving
+    # return false if @isMoving
     prevIndex =  @currentIndex - 1
     if (@settings.transitionType is "fade" or @settings.loop is "return") and prevIndex < 0
       prevIndex = (@numSlides - 1)
@@ -534,6 +486,8 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
     
   # Goes to the next page. 
   next: ->  
+    # dont proceed if still moving
+    # return false if @isMoving
     nextIndex = @currentIndex + 1
     if nextIndex > (@numSlides - 1)
       if (@settings.transitionType is "fade" or @settings.loop is "return") 
@@ -558,7 +512,7 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
     
   # Utility function. Finds an element in the container for a given selector in the selectors object.
   find: (selectorName) => 
-    @container.find @settings.selectors[selectorName]
+    @element.find @settings.selectors[selectorName]
   
   # Utility function. Gets a container.      
   getContainer: (name, _default) -> 
@@ -568,62 +522,4 @@ SEQ.modules.CoffeeSlider = class CoffeeSlider
   getSelector: (name) ->
     selector = @settings.selectors[name]
     selector.slice(1, selector.length)
-
-class modules.Pagination
-  paginationCurrent:{}
-  paginationTotal:{}
-    
-  constructor: (paginationContainer, paginationSel, paginationCurrentSel, paginationTotalSel, numSlides) ->
-  
-    pagination = $("<div />").addClass(paginationSel).append(
-      @paginationCurrent = $("<span />").addClass(paginationCurrentSel),
-      @paginationTotal = $("<span />").addClass(paginationTotalSel).html("/0#{numSlides}")
-    )
-    
-    i = 1
-    
-    while i <= numSlides
-      @paginationCurrent.append $("<div />").addClass("number").html("0#{i}") 
-      i++
-    
-    paginationContainer.append(pagination)
-    
-  setPage: (index) ->
       
-    SEQ.Tween.To
-      target : @paginationCurrent
-      props :
-        top : "-#{@paginationCurrent.find('.number').outerHeight() * (index-1)}px"
-      duration : 500
-      
-SEQ.modules.ThumbSlider = class ThumbSlider extends SEQ.modules.CoffeeSlider
-  constructor:(@options) ->
-    super(@options)
-    @settings.link.link = @
-    
-  goTo: (index, skipTransition) =>
-    super(index, skipTransition)
-    
-  bindUIEvents: =>
-    super()
-    for slide in @slides
-      $(slide).on("click", @onSlideClick)
-      
-  onSlideClick: (e) =>
-    if @clicked?
-      @clicked.removeClass("active")
-    @clicked = $(e.currentTarget)
-    @clicked.addClass("active")
-    
-    slideIndex = @clicked.index() - @settings.step
-    limit = (@numUniqueSlides - 1)
-    
-    if slideIndex > limit
-      slideIndex = Math.abs(limit-slideIndex) - 1
-      
-    if @settings.link?
-      @settings.link.goTo(slideIndex, false)
-
-    
-        
-  
