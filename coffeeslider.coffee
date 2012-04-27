@@ -176,10 +176,24 @@ class modules.CoffeeSlider extends modules.BaseModule
         duration: 300
         props:
           opacity: 1
+        complete: @onImagesLoadedTransitionComplete
+          
     else
       setTimeout =>
         @checkImagesLoaded(callback)
       , 100
+  
+  onImagesLoadedTransitionComplete: =>       
+    
+    transition.To
+      target: @slides
+      duration: 300
+      props:
+        opacity: 1
+      complete: =>
+        @element.css
+          height: "auto"
+  
       
   # Appends cloned slides to either side for purposes of creating illusion of infinite scrolling.
   appendClonedSlides: ->     
