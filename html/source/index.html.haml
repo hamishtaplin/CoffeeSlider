@@ -1,0 +1,54 @@
+---
+  page_title: CoffeeSlider
+  body_id: home
+---
+
+%section#features
+  .wrapper  
+    %ul
+      .col-4
+        %li#responsive
+          Fully compatible with responsive CSS techniques.
+        %li#infinite
+          Infinite scrolling, with options for 
+      .col-4
+        %li#touch
+          Touch-enables for mobile &amp; tablets
+        %li#transitions
+          Horizontal, vertical &amp; fade transitions
+      .col-4      
+        %li#css3
+          CSS3 transitions for animation with jQuery fallback for older browsers
+        %li#developers
+          Built for front-end developers as an extensible platform using inheritance
+
+%article#content
+  #hero
+    .wrapper
+      = partial("includes/modules/carousel")
+  
+  %article#how-to-use  
+    .wrapper
+      %section
+        %h2
+          1. Basics
+        %p
+          Coffeeslider is instantiated just like any native Javascript object, via the 'new' keyword. There are a number of options that can be passed in (via an Object-literal).
+        %p
+          The following is an example of a minimal implementation: 
+ 
+      %section.code
+        %code
+          new SEQ.modules.CoffeeSlider
+  
+      %section
+        %h2
+          2. Advanced Features
+        %p
+          Coffeeslider is instantiated just like any native Javascript object, via the 'new' keyword. There are a number of options that can be passed in (via an Object-literal).
+        %p
+          The following is an example of a minimal implementation:
+  
+      %section.code
+        %code
+          new SEQ.modules.CoffeeSlider
