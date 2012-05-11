@@ -22,8 +22,7 @@ onDocReady = () ->
     container: $("#carousel")
     transitionType: "slide"
     loop: "infinite"
-    transitionSpeed: 1800
-    transitionDelay: 5000
+    transitionSpeed: 800
     transitionDirection: "horizontal"
     touchStyle: "drag"
     preload: true
