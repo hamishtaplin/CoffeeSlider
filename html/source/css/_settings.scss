@@ -1,0 +1,51 @@
+//
+//  Configurable settings
+//  Use this file to override or customise site
+//
+//
+//  Comments
+//  @Project    Acme Ltd
+//  @Type       Sitecore/Umbraco, etc.
+//  @Version    0.2
+//  @Date       19/01/2012
+//  @Author     [Name]
+//  @BrowserSupport   IE8, IE9, Safari, Firefox, Chrome
+//
+
+// colors
+
+$white: #fff;
+$black: #000;
+$dark-grey: #333;
+$mid-grey: #999;
+$light-grey: #ccc;
+
+$default-colour: $black;
+$highlight-colour: #ff0064;
+
+// Base settings
+$width: 978px;
+$gutters: 30px;
+$columns: 12;
+$baseline: 10px;
+$font-size: 16;
+
+// Debug helpers
+$debug: false;
+$debug-grid: griddle; // none, structure, griddle, baseline
+
+// Typography settings
+$sans: "Helvetica Neue", Arial, sans-serif;
+$serif: "Georgia", Times New Roman, Times, sans-serif;
+$mono: "Monaco", Courier New, monospace;
+
+// Links settings
+$links-normal: $dark-grey;
+$links-hover: $highlight-colour;
+$links-active: $dark-grey;
+$links-visited: $dark-grey;
+$links-focus: $dark-grey;
+
+// Border settings
+$borders: $dark-grey;
+$hr-border: $dark-grey;
