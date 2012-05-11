@@ -18,7 +18,9 @@ class modules.ThumbSlider extends modules.CoffeeSlider
   goTo: (index, skipTransition) =>
     @currentIndex = index
     @setCurrentSlide()
-    super(index, skipTransition)
+    
+    console.log 
+    
     
   setCurrentSlide: () =>
     if @current?

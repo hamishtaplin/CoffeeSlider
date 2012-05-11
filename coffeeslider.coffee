@@ -333,10 +333,12 @@ class modules.CoffeeSlider extends modules.BaseSlider
     # next / back click events
       @nextBtn.bind "click", (e) =>
         e.preventDefault()
-        @next()
+        if !$(e.target).hasClass("disabled")
+          @next()
       @prevBtn.bind "click", (e) =>
         e.preventDefault()
-        @prev()
+        if !$(e.target).hasClass("disabled")
+          @prev()
     
     #touch events
     @inner.bind "touchstart", @onTouchStart if @settings.touchStyle isnt CoffeeSlider.TOUCH_NONE
@@ -446,8 +448,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
     
     if !skipTransition
       @isMoving = true    
-    
-       
+           
     if @settings.transitionType is CoffeeSlider.TRANSITION_SLIDE
       @slideTo(index, skipTransition)
     else if @settings.transitionType is CoffeeSlider.TRANSITION_FADE
@@ -527,6 +528,17 @@ class modules.CoffeeSlider extends modules.BaseSlider
         
   # Called whenever a slide transition completes.
   onTransitionComplete: () =>
+    if @settings.loop is CoffeeSlider.LOOP_LIMIT
+      if @currentIndex is 0
+        @prevBtn.addClass("disabled")
+      else
+        @prevBtn.removeClass("disabled")
+    
+      if @currentIndex is (@numSlides - 1)
+        @nextBtn.addClass("disabled")
+      else
+        @nextBtn.removeClass("disabled")
+    
     @isMoving = false
     if @settings.loop is CoffeeSlider.LOOP_INFINITE and @settings.transitionType isnt CoffeeSlider.TRANSITION_FADE
       if @currentIndex is -1
