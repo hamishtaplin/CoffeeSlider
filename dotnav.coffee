@@ -8,7 +8,7 @@
 # namespace
 modules = SEQ.utils.namespace('SEQ.modules')
 
-class modules.DotNav extends modules.BaseModule
+class modules.DotNav extends modules.BaseSlider
 
   constructor: (@options) -> 
     @btns = []
@@ -30,8 +30,6 @@ class modules.DotNav extends modules.BaseModule
 
   onClick: (e) =>
     e.preventDefault()
-    
-    
     @setActive($(e.target))
     @element.trigger("change")
     return false

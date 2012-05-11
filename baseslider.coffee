@@ -7,7 +7,7 @@
 # namespace
 modules = SEQ.utils.namespace('SEQ.modules')
 # the main Class
-class modules.BaseModule
+class modules.BaseSlider
   
   constructor: (@options) ->
     @currentIndex = 0
@@ -19,15 +19,13 @@ class modules.BaseModule
   init: () =>
     @goTo(0)
     
-  goTo: (index, skipTransition) =>
-      
+  goTo: (index, skipTransition) =>   
     @currentIndex = index
-    
     for navModule in @navModules
       if navModule.goTo?
         navModule.goTo index, skipTransition
       
-  registerNavModule: (navModule) =>  
+  registerNavModule: (navModule) =>
     navModule.element.on "change", (e) =>
       @goTo navModule.currentIndex
 

@@ -9,20 +9,37 @@ modules = SEQ.utils.namespace('SEQ.modules')
 transition = SEQ.effects.Transition
 
 # the main Class
-class modules.CoffeeSlider extends modules.BaseModule    
+class modules.CoffeeSlider extends modules.BaseSlider   
   # Constructor. Creates a CoffeeSlider instance.
-
+  
+  #static constants
+  #transition types
+  @TRANSITION_SLIDE: "slide"
+  @TRANSITION_FADE: "fade"
+  @TRANSITION_SLIDE_FADE: "slideFade"
+  # directions
+  @DIRECTION_HORIZONTAL: "horizontal"
+  @DIRECTION_VERTICAL: "vertical"
+  # touch styles
+  @TOUCH_DRAG: "drag"
+  @TOUCH_GESTURE: "gesture"
+  @TOUCH_INVERSE_GESTURE: "inverseGesture"
+  @TOUCH_NONE: "none"
+  # loop types
+  @LOOP_INFINITE: "infinite"
+  @LOOP_RETURN: "return"
+  @LOOP_LIMIT: "limit"
+  
   constructor: (@options) ->
-    
     # Intial settings
     # --------------
     @settings =
-      # type of animation - "slide", "fade" or "slideFade"
-      transitionType: "slide" 
+      # type of animation - @TRANSITION_SLIDE, @TRANSITION_FADE or @TRANSITION_SLIDE_FADE
+      transitionType: CoffeeSlider.TRANSITION_SLIDE
       # slideshow?
       slideshow: false
       # the direction of transitions
-      transitionDirection: "horizontal" 
+      transitionDirection: CoffeeSlider.DIRECTION_HORIZONTAL
       # duration between transitions in slideshow mode
       transitionDelay: 2000 
       # duration of transition
@@ -35,12 +52,12 @@ class modules.CoffeeSlider extends modules.BaseModule
       step: 1
       # respond to browser resizing
       responsive: true
-      # which style of touch interaction to use, "gesture", "inverseGesture", "drag" or "none"
-      touchStyle: "drag"                    
-      # "infinite" - slides loop infinitely
-      # "return" - loops around to start/end
-      # "none" - does nothing when it reaches the start/end
-      loop: "infinite"
+      # which style of touch interaction to use, @TOUCH_DRAG, @TOUCH_INVERSE_GESTURE, @TOUCH_DRAG or @TOUCH_NONE
+      touchStyle: CoffeeSlider.TOUCH_DRAG                   
+      # @LOOP_INFINITE - slides loop infinitely
+      # @LOOP_RETURN - loops around to start/end
+      # @LOOP_LIMIT - does nothing when it reaches the start/end
+      loop: CoffeeSlider.LOOP_INFINITE
       # preloads the images
       preload: true                   
       
@@ -143,9 +160,9 @@ class modules.CoffeeSlider extends modules.BaseModule
       @outer = @find("outer")
   
   # Initialises slides
-  initSlides: (callback) =>
+  initSlides: (callback) =>    
     # add cloned slides for infine scrolling unless fade  
-    if @settings.loop is "infinite" and @settings.transitionType isnt "fade"
+    if @settings.loop is CoffeeSlider.LOOP_INFINITE and @settings.transitionType isnt CoffeeSlider.TRANSITION_FADE
       @appendClonedSlides()
 
     if @settings.preload
@@ -183,8 +200,7 @@ class modules.CoffeeSlider extends modules.BaseModule
         @checkImagesLoaded(callback)
       , 100
   
-  onImagesLoadedTransitionComplete: =>       
-    
+  onImagesLoadedTransitionComplete: =>
     transition.To
       target: @slides
       duration: 300
@@ -193,11 +209,10 @@ class modules.CoffeeSlider extends modules.BaseModule
       complete: =>
         @element.css
           height: "auto"
-  
-      
+     
   # Appends cloned slides to either side for purposes of creating illusion of infinite scrolling.
   appendClonedSlides: ->     
-    float = (if @settings.transitionDirection is "horizontal" then "left" else "none")
+    float = (if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL then "left" else "none")
     i = 0
     while i < @settings.step
       i++
@@ -229,12 +244,12 @@ class modules.CoffeeSlider extends modules.BaseModule
       overflow: "hidden"
 
     # if using 'slide' option
-    if @settings.transitionType is "slide" or @settings.transitionType is "slideFade"
-      if @settings.transitionDirection is "horizontal"
+    if @settings.transitionType is CoffeeSlider.TRANSITION_SLIDE or @settings.transitionType is CoffeeSlider.TRANSITION_SLIDE_FADE
+      if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL
         @slides.css
           float: "left"
           overflow: "hidden"                    
-    else if @settings.transitionType is "fade"
+    else if @settings.transitionType is CoffeeSlider.TRANSITION_FADE
       @slides.css
         position: "absolute"
         left: "0"
@@ -259,9 +274,9 @@ class modules.CoffeeSlider extends modules.BaseModule
     @slides.css
       width: outerWidth
     
-    # if using 'slide' option
-    if @settings.transitionType is "slide" or @settings.transitionType is "slideFade"
-      if @settings.transitionDirection is "horizontal"
+    # if using @TRANSITION_SLIDE option
+    if @settings.transitionType is CoffeeSlider.TRANSITION_SLIDE or @settings.transitionType is CoffeeSlider.TRANSITION_SLIDE_FADE
+      if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL
         # recalculate width
         @slideWidth = @slides.eq(0).outerWidth(true)
         @totalWidth = @slideWidth * @numSlides  
@@ -272,7 +287,7 @@ class modules.CoffeeSlider extends modules.BaseModule
         # set width of outer wrapper
         @outer.css
           height: @slideHeight
-      else if @settings.transitionDirection is "vertical"
+      else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL
         # set width of inner to accomodate slides
         @inner.css
           height: @totalHeight
@@ -280,15 +295,14 @@ class modules.CoffeeSlider extends modules.BaseModule
         @outer.css
           height: @slideHeight
     
-    # if "fade"
-    else if @settings.transitionType is "fade"
+    # if @TRANSITION_FADE
+    else if @settings.transitionType is CoffeeSlider.TRANSITION_FADE
       @inner.css
         height: @slideHeight
         
   # Initialises UI components.
   initUI: ->
-    @uiParent = @getContainer "uiParent", @element
-    
+    @uiParent = @getContainer "uiParent", @element  
     # create next/prev buttons
     if @settings.hasPrevNext
       @prevBtn = $("<div />")
@@ -301,7 +315,7 @@ class modules.CoffeeSlider extends modules.BaseModule
         .html("next") 
       @uiParent.append(@prevBtn)
       @uiParent.append(@nextBtn)
-      
+        
     if @settings.hasDotNav
       dotNav = new modules.DotNav
         slides: @slides
@@ -325,7 +339,7 @@ class modules.CoffeeSlider extends modules.BaseModule
         @prev()
     
     #touch events
-    @inner.bind "touchstart", @onTouchStart if @settings.touchStyle isnt "none"
+    @inner.bind "touchstart", @onTouchStart if @settings.touchStyle isnt CoffeeSlider.TOUCH_NONE
   
   onWindowResize: =>
     @applySizes()
@@ -360,28 +374,28 @@ class modules.CoffeeSlider extends modules.BaseModule
     @inner.unbind("touchcancel", @onTouchEndOrCancel)
     @inner.unbind("touchmove", @onTouchMove)
     
-    if @settings.transitionDirection is "horizontal"    
+    if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL    
       if @distanceMovedX > 50
-        if @settings.transitionType is "fade" or @settings.touchStyle is "inverseGesture"
+        if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or CoffeeSlider.settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
           @prev()
         else
           @next()
       else if @distanceMovedX < -50
-        if @settings.transitionType is "fade" or @settings.touchStyle is "inverseGesture"
+        if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
           @next()
         else
           @prev()
       else
         @goTo @currentIndex
         
-    else if @settings.transitionDirection is "vertical"    
+    else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL    
       if @distanceMovedY > 50
-        if @settings.transitionType is "fade" or @settings.touchStyle is "inverseGesture"
+        if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
           @prev()
         else
           @next()
       else if @distanceMovedY < -50
-        if @settings.transitionType is "fade" or @settings.touchStyle is "inverseGesture"
+        if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
           @next()
         else
           @prev()
@@ -396,20 +410,20 @@ class modules.CoffeeSlider extends modules.BaseModule
     @distanceMovedX = @startX - @endX
     @distanceMovedY = @startY - @endY
                                  
-    if @settings.transitionDirection is "horizontal"
+    if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL
       if Math.abs(@distanceMovedX) > 15
         e.preventDefault()     
       else if Math.abs(@distanceMovedY) > 15
         @inner.unbind "touchmove", @onTouchMove
     
-    else if @settings.transitionDirection is "vertical"
+    else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL
       if Math.abs(@distanceMovedY) > 10
         e.preventDefault()     
       else if Math.abs(@distanceMovedX) > 10
         @inner.unbind "touchmove", @onTouchMove
     
-    if @settings.touchStyle is "drag"     
-      if @settings.transitionDirection is "horizontal"
+    if @settings.touchStyle is CoffeeSlider.TOUCH_DRAG     
+      if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL
         dragPosX = @innerLeft - (@startX - @endX) 
         if @settings.loop isnt "infinite" and (dragPosX >= 10  or dragPosX <= 0 - (@totalWidth - @slideWidth - 10))
           @inner.unbind "touchmove", @onTouchMove
@@ -417,7 +431,7 @@ class modules.CoffeeSlider extends modules.BaseModule
         else
           @inner.css
             left: dragPosX           
-      else if @settings.transitionDirection is "vertical"
+      else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL
         dragPosY = @innerTop - (@startY - @endY) 
         if @settings.loop isnt "infinite" and dragPosY >= 10
           @inner.unbind "touchmove", @onTouchMove
@@ -428,17 +442,17 @@ class modules.CoffeeSlider extends modules.BaseModule
 
   # Goes to a specific slide (as indicated).
   goTo: (index, skipTransition) =>
-    
     @settings.callbacks.onTransition()
     
-    # if !skipTransition
-    #  @isMoving = true    
-     
-    if @settings.transitionType is "slide"
+    if !skipTransition
+      @isMoving = true    
+    
+       
+    if @settings.transitionType is CoffeeSlider.TRANSITION_SLIDE
       @slideTo(index, skipTransition)
-    else if @settings.transitionType is "fade"
+    else if @settings.transitionType is CoffeeSlider.TRANSITION_FADE
       @fadeTo(index, skipTransition)
-    else if @settings.transitionType is "slideFade"
+    else if @settings.transitionType is CoffeeSlider.TRANSITION_SLIDE_FADE
       @slideFadeTo(index, skipTransition)
           
     if @settings.slideshow
@@ -453,9 +467,9 @@ class modules.CoffeeSlider extends modules.BaseModule
     # offset to compensate for extra slide if in infinite mode
     offset = (if @settings.loop is "infinite" then @settings.step else 0)       
     
-    if @settings.transitionDirection is "horizontal"
+    if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL
       position = left: 0 - (index + offset) * @slideWidth
-    else if @settings.transitionDirection is "vertical"
+    else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL
       position = top: 0 - (index + offset) * @slideHeight * @settings.step
 
     transition.To
@@ -492,19 +506,19 @@ class modules.CoffeeSlider extends modules.BaseModule
   # Goes to the previous page.  
   prev: ->
     # dont proceed if still moving
-    # return false if @isMoving
+    return false if @isMoving
     prevIndex =  @currentIndex - 1
-    if (@settings.transitionType is "fade" or @settings.loop is "return") and prevIndex < 0
+    if (@settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.loop is CoffeeSlider.LOOP_RETURN) and prevIndex < 0
       prevIndex = (@numSlides - 1)
     @goTo prevIndex, false
     
   # Goes to the next page. 
   next: ->  
     # dont proceed if still moving
-    # return false if @isMoving
+    return false if @isMoving
     nextIndex = @currentIndex + 1
     if nextIndex > (@numSlides - 1)
-      if (@settings.transitionType is "fade" or @settings.loop is "return") 
+      if (@settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.loop is CoffeeSlider.LOOP_RETURN) 
         nextIndex = 0
       else if not @settings.loop
         return
@@ -514,7 +528,7 @@ class modules.CoffeeSlider extends modules.BaseModule
   # Called whenever a slide transition completes.
   onTransitionComplete: () =>
     @isMoving = false
-    if @settings.loop is "infinite" and @settings.transitionType isnt "fade"
+    if @settings.loop is CoffeeSlider.LOOP_INFINITE and @settings.transitionType isnt CoffeeSlider.TRANSITION_FADE
       if @currentIndex is -1
         @goTo @numSlides - (3 + (if @settings.step > 1 then @settings.step + 1 else 0)), true
       else if @currentIndex is (@numSlides - 2) - (if @settings.step > 1 then @settings.step + 1 else 0)

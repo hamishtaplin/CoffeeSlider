@@ -10,35 +10,25 @@ modules = SEQ.utils.namespace('SEQ.modules')
 class modules.ThumbSlider extends modules.CoffeeSlider
   constructor:(@options) ->
     super(@options)
+      
+  init: () =>
+    super()
+    @element.on "click", @onClick
     
   goTo: (index, skipTransition) =>
+    @currentIndex = index
+    @setCurrentSlide()
     super(index, skipTransition)
-    @setActive $(@slides[index])
     
-  bindUIEvents: =>
-    super()
-
-    for slide in @slides
-      $(slide).on("click", @onClick)
+  setCurrentSlide: () =>
+    if @current?
+      @current.removeClass("active")
+    
+    @current = $(@slides[@currentIndex])
+    @current.addClass('active')
     
   onClick: (e) =>
-    @clicked = $(e.currentTarget)
-    slideIndex = @clicked.index() - @settings.step
+    console.log $(e.target).index()
     
-    
-    
-    
-    limit = (@numUniqueSlides - 1)
-    if slideIndex > limit
-      slideIndex = Math.abs(limit-slideIndex) - 1
-      
-    @currentIndex = slideIndex
   
-    @setActive(@clicked)  
-    @element.trigger("change")
-    
-  setActive: (slide) =>
-    if @active.length > 0
-      @active.removeClass('active')
-    @active = slide
-    @active.addClass('active')
+ 
