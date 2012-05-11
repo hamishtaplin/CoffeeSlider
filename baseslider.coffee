@@ -5,7 +5,7 @@
 "use strict" 
 
 # namespace
-modules = SEQ.utils.namespace('SEQ.modules')
+modules = Namespace('SEQ.modules')
 # the main Class
 class modules.BaseSlider
   
@@ -18,15 +18,18 @@ class modules.BaseSlider
     
   init: () =>
     @goTo(0)
-    
+  
   goTo: (index, skipTransition) =>   
     @currentIndex = index
     for navModule in @navModules
+      console.log navModule.ctor
+      console.log modules.ThumbSlider
+      
       if navModule.goTo?
         navModule.goTo index, skipTransition
       
   registerNavModule: (navModule) =>
     navModule.element.on "change", (e) =>
-      @goTo navModule.currentIndex
+     # @goTo navModule.currentIndex
 
     @navModules.push(navModule)

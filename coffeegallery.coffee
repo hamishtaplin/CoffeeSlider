@@ -5,7 +5,7 @@
 "use strict" 
 
 # namespace
-modules = SEQ.utils.namespace('SEQ.modules')
+modules = Namespace('SEQ.modules')
 transition = SEQ.effects.Transition
 
 CoffeeSlider = modules.CoffeeSlider

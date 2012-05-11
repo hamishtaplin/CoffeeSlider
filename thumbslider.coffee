@@ -5,10 +5,10 @@
 "use strict" 
 
 # namespace
-modules = SEQ.utils.namespace('SEQ.modules')
+modules = Namespace('SEQ.modules')
 
 class modules.ThumbSlider extends modules.CoffeeSlider
-  constructor:(@options) ->
+  constructor:(@options) -> 
     super(@options)
       
   init: () =>
@@ -16,12 +16,9 @@ class modules.ThumbSlider extends modules.CoffeeSlider
     @element.on "click", @onClick
     
   goTo: (index, skipTransition) =>
-    @currentIndex = index
+    super(index, skipTransition)
     @setCurrentSlide()
-    
-    console.log 
-    
-    
+            
   setCurrentSlide: () =>
     if @current?
       @current.removeClass("active")

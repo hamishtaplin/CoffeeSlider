@@ -6,7 +6,7 @@
 
 # namespace
 # namespace
-modules = SEQ.utils.namespace('SEQ.modules')
+modules = Namespace('SEQ.modules')
 
 class modules.DotNav extends modules.BaseSlider
 

@@ -5,7 +5,7 @@
 "use strict" 
 
 # namespace
-modules = SEQ.utils.namespace('SEQ.modules')
+modules = Namespace('SEQ.modules')
 transition = SEQ.effects.Transition
 
 # the main Class
@@ -279,11 +279,12 @@ class modules.CoffeeSlider extends modules.BaseSlider
       if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL
         # recalculate width
         @slideWidth = @slides.eq(0).outerWidth(true)
-        @totalWidth = @slideWidth * @numSlides  
+        @totalWidth = @slideWidth * @numSlides
         # set width of inner to accomodate slides and adjust left position
+        
         @inner.css
           width: @totalWidth
-          left: 0-(outerWidth * (@currentIndex + 1))  
+          # left: 0-(outerWidth * (@currentIndex + 1)) 
         # set width of outer wrapper
         @outer.css
           height: @slideHeight
@@ -291,7 +292,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
         # set width of inner to accomodate slides
         @inner.css
           height: @totalHeight
-          top: 0-(@slideHeight * (@currentIndex + 1))  
+          # top: 0-(@slideHeight * (@currentIndex + 1))  
         @outer.css
           height: @slideHeight
     
@@ -448,13 +449,14 @@ class modules.CoffeeSlider extends modules.BaseSlider
     
     if !skipTransition
       @isMoving = true    
-           
-    if @settings.transitionType is CoffeeSlider.TRANSITION_SLIDE
-      @slideTo(index, skipTransition)
-    else if @settings.transitionType is CoffeeSlider.TRANSITION_FADE
-      @fadeTo(index, skipTransition)
-    else if @settings.transitionType is CoffeeSlider.TRANSITION_SLIDE_FADE
-      @slideFadeTo(index, skipTransition)
+    
+    switch @settings.transitionType
+      when CoffeeSlider.TRANSITION_SLIDE
+        @slideTo(index, skipTransition)
+      when CoffeeSlider.TRANSITION_FADE
+        @fadeTo(index, skipTransition)
+      when CoffeeSlider.TRANSITION_SLIDE_FADE
+        @slideFadeTo(index, skipTransition)
           
     if @settings.slideshow
       @initSlideshow()
@@ -467,18 +469,26 @@ class modules.CoffeeSlider extends modules.BaseSlider
     @currentIndex = index
     # offset to compensate for extra slide if in infinite mode
     offset = (if @settings.loop is "infinite" then @settings.step else 0)       
-    
-    if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL
-      position = left: 0 - (index + offset) * @slideWidth
-    else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL
-      position = top: 0 - (index + offset) * @slideHeight * @settings.step
+        
+    switch @settings.transitionDirection
+      when CoffeeSlider.DIRECTION_HORIZONTAL
+        position = left: 0 - (index + offset) * @slideWidth * @getStepMultiplier()
+      when CoffeeSlider.DIRECTION_VERTICAL
+        position = top: 0 - (index + offset) * @slideHeight * @getStepMultiplier()
 
     transition.To
       target: @inner
       props: position    
       duration: if skipTransition then 0 else @settings.transitionSpeed / 2
       complete: @onTransitionComplete
-
+  
+  getStepMultiplier: =>
+    
+    console.log (@numSlides-1) - (@currentIndex * @settings.step)
+    
+    
+    
+    return @settings.step 
   # fades to the index
   fadeTo: (index, skipTransition) =>
     # fade out the current slide, if it exists
