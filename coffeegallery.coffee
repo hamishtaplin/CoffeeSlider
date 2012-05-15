@@ -22,7 +22,7 @@ class modules.CoffeeGallery
     @coffeeslider = new CoffeeSlider
       container: $(@options.slider)
       transitionType: CoffeeSlider.TRANSITION_SLIDE
-      loop: CoffeeSlider.LOOP_LIMIT
+      loop: CoffeeSlider.INFINITE
       transitionSpeed: 1400
       transitionDelay: 5000
       transitionDirection: CoffeeSlider.DIRECTION_HORIZONTAL
