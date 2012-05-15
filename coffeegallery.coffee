@@ -50,7 +50,7 @@ class modules.CoffeeGallery
       selectors:
        slide: "figure"
 
-    @coffeeslider.registerNavModule(@thumbnails)
+    @coffeeslider.registerNavModule(@thumbnails, @thumbnails.setCurrentSlide)
 
   createThumbs: =>
     for slide in $(@options.slider).find(".slide")

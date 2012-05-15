@@ -111,7 +111,6 @@ class modules.CoffeeSlider extends modules.BaseSlider
     # is currently moving
     @isMoving = false;
     # navigation modules
-    
     super(@options)
   # initialises the class
   init: () =>
@@ -130,7 +129,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
       @applySizes()          
       @bindUIEvents()
       @settings.callbacks.onStart()
-      @goTo(0, true)
+      @goToIndex(0, true)
     
     if @settings.responsive
       $(window).resize @onWindowResize
@@ -389,7 +388,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
         else
           @prev()
       else
-        @goTo @currentIndex
+        @goToIndex @currentIndex
         
     else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL    
       if @distanceMovedY > 50
@@ -403,7 +402,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
         else
           @prev()
       else
-        @goTo @currentIndex
+        @goToIndex @currentIndex
                            
   # Called when a touch move event fires.     
   onTouchMove: (e) =>
@@ -444,7 +443,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
             top: dragPosY
 
   # Goes to a specific slide (as indicated).
-  goTo: (index, skipTransition) =>
+  goToIndex: (index, skipTransition) =>
     @settings.callbacks.onTransition()
     
     if !skipTransition
@@ -483,11 +482,6 @@ class modules.CoffeeSlider extends modules.BaseSlider
       complete: @onTransitionComplete
   
   getStepMultiplier: =>
-    
-    console.log (@numSlides-1) - (@currentIndex * @settings.step)
-    
-    
-    
     return @settings.step 
   # fades to the index
   fadeTo: (index, skipTransition) =>
@@ -521,7 +515,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
     prevIndex =  @currentIndex - 1
     if (@settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.loop is CoffeeSlider.LOOP_RETURN) and prevIndex < 0
       prevIndex = (@numSlides - 1)
-    @goTo prevIndex, false
+    @goToIndex prevIndex, false
     
   # Goes to the next page. 
   next: ->  
@@ -534,7 +528,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
       else if not @settings.loop
         return
         
-    @goTo nextIndex, false
+    @goToIndex nextIndex, false
         
   # Called whenever a slide transition completes.
   onTransitionComplete: () =>
@@ -552,9 +546,9 @@ class modules.CoffeeSlider extends modules.BaseSlider
     @isMoving = false
     if @settings.loop is CoffeeSlider.LOOP_INFINITE and @settings.transitionType isnt CoffeeSlider.TRANSITION_FADE
       if @currentIndex is -1
-        @goTo @numSlides - (3 + (if @settings.step > 1 then @settings.step + 1 else 0)), true
+        @goToIndex @numSlides - (3 + (if @settings.step > 1 then @settings.step + 1 else 0)), true
       else if @currentIndex is (@numSlides - 2) - (if @settings.step > 1 then @settings.step + 1 else 0)
-        @goTo 0, true
+        @goToIndex 0, true
       else
         @settings.callbacks.onTransitionComplete()
     else

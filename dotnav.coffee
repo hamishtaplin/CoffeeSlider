@@ -5,7 +5,6 @@
 "use strict" 
 
 # namespace
-# namespace
 modules = Namespace('SEQ.modules')
 
 class modules.DotNav extends modules.BaseSlider
@@ -41,7 +40,7 @@ class modules.DotNav extends modules.BaseSlider
     @active.addClass('active')
     @currentIndex = btn.index()
     
-  goTo: (index, skipTransition) =>
+  goToIndex: (index, skipTransition) =>
     super(index, skipTransition)
     if @btns[index]? and @btns[index].length > 0
       @setActive @btns[index]

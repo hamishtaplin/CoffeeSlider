@@ -17,19 +17,28 @@ class modules.BaseSlider
     @init()
     
   init: () =>
-    @goTo(0)
+    @goToIndex(0)
   
-  goTo: (index, skipTransition) =>   
-    @currentIndex = index
-    for navModule in @navModules
-      console.log navModule.ctor
-      console.log modules.ThumbSlider
-      
-      if navModule.goTo?
-        navModule.goTo index, skipTransition
-      
-  registerNavModule: (navModule) =>
-    navModule.element.on "change", (e) =>
-     # @goTo navModule.currentIndex
+  getCurrentIndex: () =>
+    return @currentIndex
 
-    @navModules.push(navModule)
+  goToIndex: (index, skipTransition) =>   
+    @currentIndex = index
+    for module in @navModules
+      module.handler(@currentIndex, skipTransition)
+
+  registerNavModule: (navModule, changeHandler) =>
+    @navModules.push
+      module: navModule
+      handler: if changeHandler? then changeHandler else navModule.goToIndex
+    navModule.element.on "change", =>
+      @onNavModuleChange navModule
+
+  onNavModuleChange: (navModule) =>
+    @goToIndex(navModule.getCurrentIndex())
+    @navModulesUpdate(navModule)
+
+  navModulesUpdate: (navModule) =>
+    for module in @navModules
+      if module.module is not navModule
+        module.handler(navModule.getCurrentIndex)
