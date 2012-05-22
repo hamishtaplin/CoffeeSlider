@@ -482,7 +482,13 @@ class modules.CoffeeSlider extends modules.BaseSlider
       complete: @onTransitionComplete
   
   getStepMultiplier: =>
-    return @settings.step 
+    i = @currentIndex * @settings.step
+    if i + @settings.step > @numSlides
+      diff = @numSlides - i
+    else
+      diff = @settings.step
+    return diff
+
   # fades to the index
   fadeTo: (index, skipTransition) =>
     # fade out the current slide, if it exists
@@ -510,7 +516,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
 
   # Goes to the previous page.  
   prev: ->
-    # dont proceed if still moving
+    # don't proceed if still moving
     return false if @isMoving
     prevIndex =  @currentIndex - 1
     if (@settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.loop is CoffeeSlider.LOOP_RETURN) and prevIndex < 0
@@ -519,7 +525,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
     
   # Goes to the next page. 
   next: ->  
-    # dont proceed if still moving
+    # don't proceed if still moving
     return false if @isMoving
     nextIndex = @currentIndex + 1
     if nextIndex > (@numSlides - 1)

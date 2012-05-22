@@ -34,6 +34,7 @@ class modules.DotNav extends modules.BaseSlider
     return false
   
   setActive: (btn) =>
+    if !btn.is("li") then return
     if @active.length > 0
       @active.removeClass('active')
     @active = btn
