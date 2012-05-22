@@ -26,10 +26,19 @@ class modules.ThumbSlider extends modules.CoffeeSlider
     @current = $(@slides[index])
     @current.addClass("active")
 
-    @goToIndex Math.floor(index / @settings.step), false
+    # some DOM shenanigans happens here necessitating this hack
+    # maybe fix this properly one day
+    if skipTransition
+      delay = 10
+    else
+      delay = 0
+
+    setTimeout => 
+      @goToIndex Math.floor(index / @settings.step), skipTransition
+    , delay
 
   getCurrentIndex: () =>
-    if @current? then return @current.index()
+    if @current? then return @current.index() else return null
     
   onClick: (e) =>
     target = $ e.target
