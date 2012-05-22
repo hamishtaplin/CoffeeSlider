@@ -22,7 +22,7 @@ class modules.CoffeeGallery
     @coffeeslider = new CoffeeSlider
       container: $(@options.slider)
       transitionType: CoffeeSlider.TRANSITION_SLIDE
-      loop: CoffeeSlider.LOOP_LIMIT
+      loop: CoffeeSlider.LOOP_INFINITE
       transitionSpeed: 1400
       transitionDelay: 5000
       transitionDirection: CoffeeSlider.DIRECTION_HORIZONTAL
@@ -53,7 +53,7 @@ class modules.CoffeeGallery
     @coffeeslider.registerNavModule(@thumbnails, @thumbnails.setCurrentSlide)
 
   createThumbs: =>
-    for slide in $(@options.slider).find(".slide")
+    for slide in $(@options.slider).find(".slide:not(.clone)")
       clone = $(slide).clone()
       for element in @options.stripElements
         clone.find(element).remove()

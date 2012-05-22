@@ -17,15 +17,16 @@ class modules.ThumbSlider extends modules.CoffeeSlider
     @element.on "click", @onClick
 
   setCurrentSlide: (index, skipTransition) =>
-    if index is @getCurrentIndex()
-      return false
+    # don't bother
+    if index is @getCurrentIndex() then return false
+    # if current exists, remove class
     if @current?
       @current.removeClass("active")
+    # set current to incoming slide index 
     @current = $(@slides[index])
     @current.addClass("active")
 
-    if not skipTransition
-      @goToIndex Math.floor(index / @settings.step)
+    @goToIndex Math.floor(index / @settings.step), false
 
   getCurrentIndex: () =>
     if @current? then return @current.index()

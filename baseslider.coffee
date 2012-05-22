@@ -24,6 +24,9 @@ class modules.BaseSlider
 
   goToIndex: (index, skipTransition) =>   
     @currentIndex = index
+    @updateNavModules(index, skipTransition)
+
+  updateNavModules: (index, skipTransition) => 
     for module in @navModules
       module.handler(@currentIndex, skipTransition)
 

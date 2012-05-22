@@ -6,7 +6,7 @@
 
 # namespace
 modules = Namespace('SEQ.modules')
-transition = SEQ.effects.Transition
+Transition = SEQ.effects.Transition
 
 # the main Class
 class modules.CoffeeSlider extends modules.BaseSlider   
@@ -187,7 +187,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
         
     if imgsLoaded is @numImages
       callback() if callback?
-      transition.To
+      Transition.To
         target: @outer
         duration: 300
         props:
@@ -200,7 +200,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
       , 100
   
   onImagesLoadedTransitionComplete: =>
-    transition.To
+    Transition.To
       target: @slides
       duration: 300
       props:
@@ -461,7 +461,12 @@ class modules.CoffeeSlider extends modules.BaseSlider
       @initSlideshow()
       
     super(index, skipTransition)
-              
+  
+  updateNavModules: (index, skipTransition) =>
+    # prevent navmodules from moving to out-of-bounds index
+    if index >= 0 and index <= @numUniqueSlides-1
+      super(index, skipTransition)
+
   # Uses the 'slide' animation to move to a slide.
   slideTo: (index, skipTransition) =>
     # record the current index
@@ -475,7 +480,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
       when CoffeeSlider.DIRECTION_VERTICAL
         position = top: 0 - (index + offset) * @slideHeight * @getStepMultiplier()
 
-    transition.To
+    Transition.To
       target: @inner
       props: position    
       duration: if skipTransition then 0 else @settings.transitionSpeed / 2
@@ -493,7 +498,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
   fadeTo: (index, skipTransition) =>
     # fade out the current slide, if it exists
     if @slides[@currentIndex]?
-      transition.To
+      Transition.To
         target: @slides[@currentIndex]
         props:
           opacity: 0
@@ -502,7 +507,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
     # record the current index
     @currentIndex = index
     
-    transition.To
+    Transition.To
       target: @slides[index]
       props:
         opacity: 1
