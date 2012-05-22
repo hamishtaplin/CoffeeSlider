@@ -44,7 +44,7 @@ class modules.CoffeeGallery
       transitionDelay: 5000
       transitionDirection: ThumbSlider.DIRECTION_HORIZONTAL
       touchStyle: ThumbSlider.TOUCH_DRAG
-      step: 3
+      step: 4
       responsive: false
       hasDotNav: false
       selectors:

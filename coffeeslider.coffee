@@ -112,6 +112,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
     @isMoving = false;
     # navigation modules
     super(@options)
+
   # initialises the class
   init: () =>
     @element = @options.container
@@ -358,31 +359,78 @@ class modules.CoffeeSlider extends modules.BaseSlider
   onTouchStart: (e) =>
     @innerLeft = parseInt(@inner.css("left"))
     @innerTop = parseInt(@inner.css("top"))
-    @startX = endX = e.originalEvent.touches[0].pageX
-    @startY = endY = e.originalEvent.touches[0].pageY        
-    @distanceMovedX = 0
-    @distanceMovedY = 0
-        
+    @touchStartPoint = 
+      x: e.originalEvent.touches[0].pageX
+      y: e.originalEvent.touches[0].pageY        
+    @distanceMoved =
+      x: 0
+      y: 0
     @inner.bind("touchend", @onTouchEndOrCancel)
     @inner.bind("touchcancel", @onTouchEndOrCancel)
     @inner.bind("touchmove", @onTouchMove)
     
+    # pause slideshow
     if @settings.slideshow
       clearTimeout(@timer)
-  
+
+  # Called when a touch move event fires.     
+  onTouchMove: (e) =>
+    @touchEndPoint =
+      x: e.originalEvent.touches[0].pageX  
+      y: e.originalEvent.touches[0].pageY
+    @distanceMoved =
+      x: @touchStartPoint.x - @touchEndPoint.x
+      y: @touchStartPoint.y - @touchEndPoint.y
+
+    dragPos =
+      x:0
+      y:0
+
+    if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL
+      if Math.abs(@distanceMoved.x) > 15    
+        e.preventDefault()     
+      else if Math.abs(@distanceMoved.y) > 15
+        @inner.unbind "touchmove", @onTouchMove
+    
+    else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL
+      if Math.abs(@distanceMoved.y) > 10
+        e.preventDefault()     
+      else if Math.abs(@distanceMoved.x) > 10
+        @inner.unbind "touchmove", @onTouchMove
+    
+    if @settings.touchStyle is CoffeeSlider.TOUCH_DRAG     
+      if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL
+        dragPos.x = @innerLeft - (@touchStartPoint.x - @touchEndPoint.x) 
+        if @settings.loop isnt CoffeeSlider.LOOP_INFINITE and (dragPos.x >= 10  or dragPos.x <= 0 - (@totalWidth - @slideWidth - 10))
+          @inner.unbind "touchmove", @onTouchMove
+          @distanceMoved.x = 0
+        else
+          @inner.css
+            left: dragPos.x           
+      else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL
+        dragPos.y = @innerTop - (@touchStartPoint.x - @touchEndPoint.x) 
+        if @settings.loop isnt CoffeeSlider.LOOP_INFINITE and dragPos.y >= 10
+          @inner.unbind "touchmove", @onTouchMove
+          @distanceMoved.y = 0
+        else  
+          @inner.css
+            top: dragPos.y
+
   # Called when a touch event finishes.
-  onTouchEndOrCancel: ( ) =>
+  onTouchEndOrCancel: (e) =>
     @inner.unbind("touchend", @onTouchEndOrCancel)
     @inner.unbind("touchcancel", @onTouchEndOrCancel)
     @inner.unbind("touchmove", @onTouchMove)
-    
+    e.preventDefault()
+    e.stopPropagation()
+
     if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL    
-      if @distanceMovedX > 50
-        if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or CoffeeSlider.settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
+      if @distanceMoved.x > 50
+        if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
           @prev()
         else
           @next()
-      else if @distanceMovedX < -50
+      else if @distanceMoved.x < -50
         if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
           @next()
         else
@@ -391,12 +439,12 @@ class modules.CoffeeSlider extends modules.BaseSlider
         @goToIndex @currentIndex
         
     else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL    
-      if @distanceMovedY > 50
+      if @distanceMoved.y > 50
         if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
           @prev()
         else
           @next()
-      else if @distanceMovedY < -50
+      else if @distanceMoved.y < -50
         if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
           @next()
         else
@@ -404,44 +452,6 @@ class modules.CoffeeSlider extends modules.BaseSlider
       else
         @goToIndex @currentIndex
                            
-  # Called when a touch move event fires.     
-  onTouchMove: (e) =>
-    @endX = e.originalEvent.touches[0].pageX  
-    @endY = e.originalEvent.touches[0].pageY
-    
-    @distanceMovedX = @startX - @endX
-    @distanceMovedY = @startY - @endY
-                                 
-    if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL
-      if Math.abs(@distanceMovedX) > 15
-        e.preventDefault()     
-      else if Math.abs(@distanceMovedY) > 15
-        @inner.unbind "touchmove", @onTouchMove
-    
-    else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL
-      if Math.abs(@distanceMovedY) > 10
-        e.preventDefault()     
-      else if Math.abs(@distanceMovedX) > 10
-        @inner.unbind "touchmove", @onTouchMove
-    
-    if @settings.touchStyle is CoffeeSlider.TOUCH_DRAG     
-      if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL
-        dragPosX = @innerLeft - (@startX - @endX) 
-        if @settings.loop isnt "infinite" and (dragPosX >= 10  or dragPosX <= 0 - (@totalWidth - @slideWidth - 10))
-          @inner.unbind "touchmove", @onTouchMove
-          @distanceMovedX = 0
-        else
-          @inner.css
-            left: dragPosX           
-      else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL
-        dragPosY = @innerTop - (@startY - @endY) 
-        if @settings.loop isnt "infinite" and dragPosY >= 10
-          @inner.unbind "touchmove", @onTouchMove
-          @distanceMovedY = 0
-        else  
-          @inner.css
-            top: dragPosY
-
   # Goes to a specific slide (as indicated).
   goToIndex: (index, skipTransition) =>
     @settings.callbacks.onTransition()

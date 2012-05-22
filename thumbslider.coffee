@@ -41,6 +41,9 @@ class modules.ThumbSlider extends modules.CoffeeSlider
     if @current? then return @current.index() else return null
     
   onClick: (e) =>
+
+    if @distanceMoved.x or @distanceMoved.y > 10 then return
+
     target = $ e.target
     e.preventDefault()
     if target.hasClass("slide")
