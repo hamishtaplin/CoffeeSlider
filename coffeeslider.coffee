@@ -50,6 +50,8 @@ class modules.CoffeeSlider extends modules.BaseSlider
       hasDotNav: true
       # increase for multiple 'slides' in a viewport    
       step: 1
+      # tolerence of 'snapping' whilst dragging in px
+      snapTolerance: 50
       # respond to browser resizing
       responsive: true
       # which style of touch interaction to use, @TOUCH_DRAG, @TOUCH_INVERSE_GESTURE, @TOUCH_DRAG or @TOUCH_NONE
@@ -440,40 +442,47 @@ class modules.CoffeeSlider extends modules.BaseSlider
 
   # Called when a touch event finishes.
   onTouchEndOrCancel: (e) =>
+    # unbind event listeners
     @inner.unbind("touchend", @onTouchEndOrCancel)
     @inner.unbind("mouseup", @onTouchEndOrCancel)
     @inner.unbind("touchcancel", @onTouchEndOrCancel)
     @inner.unbind("touchmove", @onTouchMove)
     @inner.unbind("mousemove", @onTouchMove)
-    e.preventDefault()
     
-    # if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL    
-    #   if @distanceMoved.x > 50
-    #     if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
-    #       @prev()
-    #     else
-    #       @next()
-    #   else if @distanceMoved.x < -50
-    #     if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
-    #       @next()
-    #     else
-    #       @prev()
-    #   else
-    #     @goToIndex @currentIndex
+    e.preventDefault()
+
+    @snapToNearestSlide()
+    
+  snapToNearestSlide: ->
+    # this is a pretty ugly piece of logic
+    # TODO: refactor this bitch
+    if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL    
+      if @distanceMoved.x > @settings.snapTolerance
+        if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
+          @prev()
+        else
+          @next()
+      else if @distanceMoved.x < -@settings.snapTolerance
+        if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
+          @next()
+        else
+          @prev()
+      else
+        @goToIndex @currentIndex
         
-    # else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL    
-    #   if @distanceMoved.y > 50
-    #     if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
-    #       @prev()
-    #     else
-    #       @next()
-    #   else if @distanceMoved.y < -50
-    #     if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
-    #       @next()
-    #     else
-    #       @prev()
-    #   else
-    #     @goToIndex @currentIndex
+    else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL    
+      if @distanceMoved.y > @settings.snapTolerance
+        if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
+          @prev()
+        else
+          @next()
+      else if @distanceMoved.y < -@settings.snapTolerance
+        if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
+          @next()
+        else
+          @prev()
+      else
+        @goToIndex @currentIndex
                            
   # Goes to a specific slide (as indicated).
   goToIndex: (index, skipTransition) =>

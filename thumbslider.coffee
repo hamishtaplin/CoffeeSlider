@@ -11,6 +11,8 @@ class modules.ThumbSlider extends modules.CoffeeSlider
   
   constructor:(@options) -> 
     super(@options)
+
+    window.t = @
       
   init: () =>
     super()
@@ -36,6 +38,10 @@ class modules.ThumbSlider extends modules.CoffeeSlider
     setTimeout => 
       @goToIndex Math.floor(index / @settings.step), skipTransition
     , delay
+
+  snapToNearestSlide: ->
+    fraction = 1 / @settings.step
+    @goToIndex @currentIndex + Math.round((@distanceMoved.x / @slideWidth) / @settings.step / fraction) * fraction
 
   getCurrentIndex: () =>
     if @current? then return @current.index() else return null
