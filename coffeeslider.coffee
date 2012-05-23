@@ -343,6 +343,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
     
     #touch events
     @inner.bind "touchstart", @onTouchStart if @settings.touchStyle isnt CoffeeSlider.TOUCH_NONE
+    @inner.bind "mousedown", @onTouchStart
   
   onWindowResize: =>
     @applySizes()
@@ -359,15 +360,25 @@ class modules.CoffeeSlider extends modules.BaseSlider
   onTouchStart: (e) =>
     @innerLeft = parseInt(@inner.css("left"))
     @innerTop = parseInt(@inner.css("top"))
-    @touchStartPoint = 
-      x: e.originalEvent.touches[0].pageX
-      y: e.originalEvent.touches[0].pageY        
+
+    if e.type is "touchstart"
+      @touchStartPoint = 
+        x: e.originalEvent.touches[0].pageX
+        y: e.originalEvent.touches[0].pageY
+    else
+      e.preventDefault()
+      @touchStartPoint = 
+        x: e.originalEvent.pageX
+        y: e.originalEvent.pageY
+
     @distanceMoved =
       x: 0
       y: 0
     @inner.bind("touchend", @onTouchEndOrCancel)
     @inner.bind("touchcancel", @onTouchEndOrCancel)
+    @inner.bind("mouseup", @onTouchEndOrCancel)
     @inner.bind("touchmove", @onTouchMove)
+    @inner.bind("mousemove", @onTouchMove)
     
     # pause slideshow
     if @settings.slideshow
@@ -375,9 +386,16 @@ class modules.CoffeeSlider extends modules.BaseSlider
 
   # Called when a touch move event fires.     
   onTouchMove: (e) =>
-    @touchEndPoint =
-      x: e.originalEvent.touches[0].pageX  
-      y: e.originalEvent.touches[0].pageY
+    if e.type is "touchmove"
+      @touchEndPoint = 
+        x: e.originalEvent.touches[0].pageX
+        y: e.originalEvent.touches[0].pageY
+    else
+      e.preventDefault()
+      @touchEndPoint = 
+        x: e.originalEvent.pageX
+        y: e.originalEvent.pageY
+
     @distanceMoved =
       x: @touchStartPoint.x - @touchEndPoint.x
       y: @touchStartPoint.y - @touchEndPoint.y
@@ -391,18 +409,21 @@ class modules.CoffeeSlider extends modules.BaseSlider
         e.preventDefault()     
       else if Math.abs(@distanceMoved.y) > 15
         @inner.unbind "touchmove", @onTouchMove
+        @inner.unbind "mousemove", @onTouchMove
     
     else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL
       if Math.abs(@distanceMoved.y) > 10
         e.preventDefault()     
       else if Math.abs(@distanceMoved.x) > 10
         @inner.unbind "touchmove", @onTouchMove
+        @inner.unbind "mousemove", @onTouchMove
     
     if @settings.touchStyle is CoffeeSlider.TOUCH_DRAG     
       if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL
         dragPos.x = @innerLeft - (@touchStartPoint.x - @touchEndPoint.x) 
         if @settings.loop isnt CoffeeSlider.LOOP_INFINITE and (dragPos.x >= 10  or dragPos.x <= 0 - (@totalWidth - @slideWidth - 10))
           @inner.unbind "touchmove", @onTouchMove
+          @inner.unbind "mousemove", @onTouchMove
           @distanceMoved.x = 0
         else
           @inner.css
@@ -411,6 +432,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
         dragPos.y = @innerTop - (@touchStartPoint.x - @touchEndPoint.x) 
         if @settings.loop isnt CoffeeSlider.LOOP_INFINITE and dragPos.y >= 10
           @inner.unbind "touchmove", @onTouchMove
+          @inner.unbind "mousemove", @onTouchMove
           @distanceMoved.y = 0
         else  
           @inner.css
@@ -419,13 +441,12 @@ class modules.CoffeeSlider extends modules.BaseSlider
   # Called when a touch event finishes.
   onTouchEndOrCancel: (e) =>
     @inner.unbind("touchend", @onTouchEndOrCancel)
+    @inner.unbind("mouseup", @onTouchEndOrCancel)
     @inner.unbind("touchcancel", @onTouchEndOrCancel)
     @inner.unbind("touchmove", @onTouchMove)
+    @inner.unbind("mousemove", @onTouchMove)
     e.preventDefault()
-    e.stopPropagation()
-
     
-
     # if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL    
     #   if @distanceMoved.x > 50
     #     if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
@@ -501,10 +522,9 @@ class modules.CoffeeSlider extends modules.BaseSlider
   getStepMultiplier: =>
     i = @currentIndex * @settings.step
     if i + @settings.step > @numSlides
-      diff = @numSlides - i
+      return @numSlides - i
     else
-      diff = @settings.step
-    return diff
+      return @settings.step
 
   # fades to the index
   fadeTo: (index, skipTransition) =>
