@@ -424,33 +424,35 @@ class modules.CoffeeSlider extends modules.BaseSlider
     e.preventDefault()
     e.stopPropagation()
 
-    if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL    
-      if @distanceMoved.x > 50
-        if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
-          @prev()
-        else
-          @next()
-      else if @distanceMoved.x < -50
-        if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
-          @next()
-        else
-          @prev()
-      else
-        @goToIndex @currentIndex
+    
+
+    # if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL    
+    #   if @distanceMoved.x > 50
+    #     if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
+    #       @prev()
+    #     else
+    #       @next()
+    #   else if @distanceMoved.x < -50
+    #     if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
+    #       @next()
+    #     else
+    #       @prev()
+    #   else
+    #     @goToIndex @currentIndex
         
-    else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL    
-      if @distanceMoved.y > 50
-        if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
-          @prev()
-        else
-          @next()
-      else if @distanceMoved.y < -50
-        if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
-          @next()
-        else
-          @prev()
-      else
-        @goToIndex @currentIndex
+    # else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL    
+    #   if @distanceMoved.y > 50
+    #     if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
+    #       @prev()
+    #     else
+    #       @next()
+    #   else if @distanceMoved.y < -50
+    #     if @settings.transitionType is CoffeeSlider.TRANSITION_FADE or @settings.touchStyle is CoffeeSlider.TOUCH_INVERSE_GESTURE
+    #       @next()
+    #     else
+    #       @prev()
+    #   else
+    #     @goToIndex @currentIndex
                            
   # Goes to a specific slide (as indicated).
   goToIndex: (index, skipTransition) =>

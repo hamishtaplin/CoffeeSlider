@@ -41,8 +41,8 @@ class modules.ThumbSlider extends modules.CoffeeSlider
     if @current? then return @current.index() else return null
     
   onClick: (e) =>
-
-    if @distanceMoved.x or @distanceMoved.y > 10 then return
+    # prevent accidental clicking when dragging
+    if @distanceMoved.x or @distanceMoved.y > 50 then return
 
     target = $ e.target
     e.preventDefault()
