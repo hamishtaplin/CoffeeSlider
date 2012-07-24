@@ -133,9 +133,10 @@ class modules.CoffeeSlider extends modules.BaseSlider
       @bindUIEvents()
       @settings.callbacks.onStart()
       @goToIndex(0, true)
-    
+
     if @settings.responsive
-      $(window).resize @onWindowResize
+      $(window).resize =>
+        @onWindowResize()
   
   # Merges user-defined options with defaults.
   applySettings:() ->
@@ -261,7 +262,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
   applySizes: =>
     #  don't do this in the middle of a transition
     if @isMoving then return
-  
+    
     # get width of single slide      
     @slideWidth = @slides.eq(0).outerWidth(true)
     @slideHeight = @slides.eq(0).innerHeight(true)
@@ -269,32 +270,29 @@ class modules.CoffeeSlider extends modules.BaseSlider
     @totalHeight = @slideHeight * @numSlides
     outerWidth = @outer.width()
     outerHeight = @outer.height()
-    @element.css
-      width: outerWidth * @settings.step
-    
+       
     # set slide widths to that of main container        
     @slides.css
       width: outerWidth
-    
+
     # if using @TRANSITION_SLIDE option
     if @settings.transitionType is CoffeeSlider.TRANSITION_SLIDE or @settings.transitionType is CoffeeSlider.TRANSITION_SLIDE_FADE
       if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL
         # recalculate width
         @slideWidth = @slides.eq(0).outerWidth(true)
         @totalWidth = @slideWidth * @numSlides
-        # set width of inner to accomodate slides and adjust left position
-        
+
+        # set width of inner to accommodate slides and adjust left position
         @inner.css
           width: @totalWidth
-          # left: 0-(outerWidth * (@currentIndex + 1)) 
         # set width of outer wrapper
         @outer.css
           height: @slideHeight
+
       else if @settings.transitionDirection is CoffeeSlider.DIRECTION_VERTICAL
-        # set width of inner to accomodate slides
+        # set width of inner to accommodate slides
         @inner.css
           height: @totalHeight
-          # top: 0-(@slideHeight * (@currentIndex + 1))  
         @outer.css
           height: @slideHeight
     

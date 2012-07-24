@@ -55,3 +55,9 @@ class modules.ThumbSlider extends modules.CoffeeSlider
     if target.hasClass("slide")
       @setCurrentSlide target.index()
       @element.trigger("change")
+
+  applySizes: =>
+    super()
+    
+    @element.css
+      width: @outer.width() * @settings.step
