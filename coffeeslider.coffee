@@ -132,7 +132,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
       @applySizes()          
       @bindUIEvents()
       @settings.callbacks.onStart()
-      @goToIndex(0, true)
+      @goToFirstSlide()
 
     if @settings.responsive
       $(window).resize =>
@@ -148,7 +148,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
     # bind DOM references
     @slides = @find("slide")
     #store number of unique slides for later
-    @numSlides = @slides.length
+    @numUniqueSlides = @numSlides = @slides.length
     
     for slide, i in @slides
       $(slide).addClass("slide slide-#{i}")
@@ -172,6 +172,18 @@ class modules.CoffeeSlider extends modules.BaseSlider
       @preload(callback)
     else
       callback() if callback?
+
+  goToFirstSlide: =>
+    # fade out all the slides, if neccessary
+    if @settings.transitionType is CoffeeSlider.TRANSITION_FADE
+      for slide, i in @slides
+        Transition.To
+          target: slide
+          props:
+            opacity: 0
+          duration: 0
+    
+    @goToIndex(0, true)
 
   # Preloads the images. 
   preload: (callback) =>
@@ -240,11 +252,12 @@ class modules.CoffeeSlider extends modules.BaseSlider
   # Applies some basic CSS.
   applyStyles: (callback) =>
     # set some initial styles
-    @inner.css 
-      position: "relative"
-      overflow: "hidden"
-    @outer.css
-      overflow: "hidden"
+    if @settings.transitionType isnt CoffeeSlider.TRANSITION_FADE
+      @inner.css 
+        position: "relative"
+        overflow: "hidden"
+      @outer.css
+        overflow: "hidden"
 
     # if using 'slide' option
     if @settings.transitionType is CoffeeSlider.TRANSITION_SLIDE or @settings.transitionType is CoffeeSlider.TRANSITION_SLIDE_FADE
@@ -340,6 +353,13 @@ class modules.CoffeeSlider extends modules.BaseSlider
         e.preventDefault()
         if !$(e.target).hasClass("disabled")
           @prev()
+
+      @nextBtn.bind "mousedown", (e) =>
+        e.preventDefault()
+        return false;
+      @prevBtn.bind "mousedown", (e) =>
+        e.preventDefault()
+        return false;
     
     #touch events
     @inner.bind "touchstart", @onTouchStart if @settings.touchStyle isnt CoffeeSlider.TOUCH_NONE
@@ -582,7 +602,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
         
   # Called whenever a slide transition completes.
   onTransitionComplete: () =>
-    if @settings.loop is CoffeeSlider.LOOP_LIMIT
+    if @settings.loop is CoffeeSlider.LOOP_LIMIT and @settings.hasPrevNext is true
       if @currentIndex is 0
         @prevBtn.addClass("disabled")
       else
@@ -594,6 +614,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
         @nextBtn.removeClass("disabled")
     
     @isMoving = false
+
     if @settings.loop is CoffeeSlider.LOOP_INFINITE and @settings.transitionType isnt CoffeeSlider.TRANSITION_FADE
       if @currentIndex is -1
         @goToIndex @numSlides - (3 + (if @settings.step > 1 then @settings.step + 1 else 0)), true

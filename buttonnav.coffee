@@ -1,5 +1,5 @@
 #    
-# DotNav
+# Button Nav
 # ============
 
 "use strict" 
@@ -7,25 +7,23 @@
 # namespace
 modules = Namespace('SEQ.modules')
 
-class modules.DotNav extends modules.BaseSlider
+class modules.ButtonNav extends modules.BaseSlider
 
   constructor: (@options) -> 
     @btns = []
     super(@options)
   
   init: () =>
-    @element = $("<nav />").addClass("dot-nav")
-    @element.append($("<ol />"))
+    @element = $("<nav />").addClass("button-nav")
+    @element.append($("<ul />"))
     # loop through slides
     for slide, i in @options.slides
-      btn = $("<li />").html(i)
+      title = $(slide).find(@options.titleSelector).html()
+      btn = $("<li />").html(title)
       @btns.push btn
-      @element.find("ol").append(btn)
+      @element.find("ul").append(btn)   
       
     @element.on("click", @onClick)
-    @element.on "mousedown", (e) =>
-      e.preventDefault()
-      return false;
     @options.parent.append(@element)
     
     super()
