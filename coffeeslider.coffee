@@ -132,7 +132,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
       @applySizes()          
       @bindUIEvents()
       @settings.callbacks.onStart()
-      @goToFirstSlide()
+      @goToIndex(0, true)
 
     if @settings.responsive
       $(window).resize =>
@@ -173,18 +173,6 @@ class modules.CoffeeSlider extends modules.BaseSlider
     else
       callback() if callback?
 
-  goToFirstSlide: =>
-    # fade out all the slides, if neccessary
-    if @settings.transitionType is CoffeeSlider.TRANSITION_FADE
-      for slide, i in @slides
-        Transition.To
-          target: slide
-          props:
-            opacity: 0
-          duration: 0
-    
-    @goToIndex(0, true)
-
   # Preloads the images. 
   preload: (callback) =>
     @outer.css
@@ -196,11 +184,11 @@ class modules.CoffeeSlider extends modules.BaseSlider
   # Loops through each image and checks if loaded. If ready, calls the callback to continue.
   checkImagesLoaded: (callback) =>
     imgsLoaded = 0
-
+    # loop over images, check if loaded
     for img in @images 
       if img.complete
         imgsLoaded++ 
-        
+    # if all images are loaded    
     if imgsLoaded is @numImages
       callback() if callback?
       Transition.To
@@ -209,7 +197,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
         props:
           opacity: 1
         complete: @onImagesLoadedTransitionComplete
-          
+    # otherwise, start again      
     else
       setTimeout =>
         @checkImagesLoaded(callback)
@@ -226,7 +214,8 @@ class modules.CoffeeSlider extends modules.BaseSlider
           height: "auto"
      
   # Appends cloned slides to either side for purposes of creating illusion of infinite scrolling.
-  appendClonedSlides: ->     
+  appendClonedSlides: ->
+    # get float value     
     float = (if @settings.transitionDirection is CoffeeSlider.DIRECTION_HORIZONTAL then "left" else "none")
     i = 0
     while i < @settings.step
@@ -283,10 +272,11 @@ class modules.CoffeeSlider extends modules.BaseSlider
     @totalHeight = @slideHeight * @numSlides
     outerWidth = @outer.width()
     outerHeight = @outer.height()
-       
-    # set slide widths to that of main container        
-    @slides.css
-      width: outerWidth
+    
+    if @settings.responsive
+      # set slide widths to that of main container        
+      @slides.css
+        width: outerWidth
 
     # if using @TRANSITION_SLIDE option
     if @settings.transitionType is CoffeeSlider.TRANSITION_SLIDE or @settings.transitionType is CoffeeSlider.TRANSITION_SLIDE_FADE
@@ -533,12 +523,14 @@ class modules.CoffeeSlider extends modules.BaseSlider
     @currentIndex = index
     # offset to compensate for extra slide if in infinite mode
     offset = (if @settings.loop is "infinite" then @settings.step else 0)       
-        
+    
+    stepMultiplier = @getStepMultiplier()
+
     switch @settings.transitionDirection
-      when CoffeeSlider.DIRECTION_HORIZONTAL
-        position = left: 0 - (index + offset) * @slideWidth * @getStepMultiplier()
+      when CoffeeSlider.DIRECTION_HORIZONTAL 
+        position = left: 0 - ((((index + offset - 1) * @settings.step) + stepMultiplier) * @slideWidth)
       when CoffeeSlider.DIRECTION_VERTICAL
-        position = top: 0 - (index + offset) * @slideHeight * @getStepMultiplier()
+        position = top: 0 - ((((index + offset - 1) * @settings.step) + stepMultiplier) * @slideHeight)
 
     Transition.To
       target: @inner
@@ -547,9 +539,10 @@ class modules.CoffeeSlider extends modules.BaseSlider
       complete: @onTransitionComplete
   
   getStepMultiplier: =>
-    i = @currentIndex * @settings.step
-    if i + @settings.step > @numSlides
-      return @numSlides - i
+    currentIndexWithStep = @currentIndex * @settings.step
+    
+    if (currentIndexWithStep + @settings.step) > @numSlides     
+      return @numSlides - currentIndexWithStep
     else
       return @settings.step
 
@@ -608,7 +601,7 @@ class modules.CoffeeSlider extends modules.BaseSlider
       else
         @prevBtn.removeClass("disabled")
     
-      if @currentIndex is (@numSlides - 1)
+      if (@numSlides - @settings.step) <= (@currentIndex * @settings.step)
         @nextBtn.addClass("disabled")
       else
         @nextBtn.removeClass("disabled")
